@@ -6,6 +6,14 @@ import { ItemList as ItemListType } from './Types/types';
 const App = () => {
   const [items, setItems] = useState<ItemListType[]>([]);
 
+  const removeItem = (index: number) => {
+    setItems((prevItems) => {
+      const newItems = [...prevItems];
+      newItems.splice(index, 1);
+      return newItems;
+    });
+  };
+
   useEffect(() => {
     try {
       const fetchData = async () => {
@@ -28,6 +36,10 @@ const App = () => {
     };
 
     window.api.entryAdded(entryAddedListenerHandler);
+  }, []);
+
+  useEffect(() => {
+    window.api.entryRemoved(removeItem);
   }, []);
 
   return (

@@ -28,23 +28,29 @@ const fetchAndUpdateClipboard = (store) => {
     const history = store.getList();
     if (history[key]) {
       clipboard.writeText(history[key].value);
+      store.remove(key);
+
+      sendMessage(window, 'entryRemoved', key);
     }
   };
 }
 
 const startListeningToClipboard = (store, window) => {
   setInterval(() => {
-      const clipboardText = clipboard.readText();
-      if (store.getLatestItem() !== clipboardText) {
-        const entry = store.insert(clipboardText);
-        if (entry) {
-          sendMessage(window, 'entryAdded', entry);
-        }
+    const clipboardText = clipboard.readText();
+    if (store.getLatestItem() !== clipboardText) {
+      const entry = store.insert(clipboardText);
+      if (entry) {
+        sendMessage(window, 'entryAdded', entry);
       }
-    }, 500);
+    }
+  }, 500);
 };
 
 const init = async () => {
+  const isPrimaryInstance = app.requestSingleInstanceLock('clipboard-manager');
+  if (!isPrimaryInstance) process.exit(0);
+
   window = await createWindow();
   createTray();
   const store = connectToStore();

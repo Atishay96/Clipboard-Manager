@@ -3,14 +3,20 @@ const { ipcRenderer, contextBridge } = require('electron');
 contextBridge.exposeInMainWorld('api', {
     requestHistory: () => {
         return new Promise((resolve, reject) => {
-            ipcRenderer.send('requestHistory')
+            ipcRenderer.send('requestHistory');
             ipcRenderer.once('updatedHistory', (e, data) => resolve(data));
         });
     },
     entryAdded: (callback) => {
         ipcRenderer.on('entryAdded', (e, data) => callback(data));
     },
-    copyToClipboard: (data) => {
-        ipcRenderer.send('copyToClipboard', data);
+    entryRemoved: (callback) => {
+        ipcRenderer.on('entryRemoved', (e, data) => callback(data));
+    },
+    deleteEntry: (index) => {
+        ipcRenderer.send('deleteEntry', index);
+    },
+    copyToClipboard: (historyItem, index) => {
+        ipcRenderer.send('copyToClipboard', historyItem, index);
     },
 });

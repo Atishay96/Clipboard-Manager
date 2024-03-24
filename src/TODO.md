@@ -1,11 +1,16 @@
 - [ ] Security issues
-- [ ] Only one instance for the app
-- [ ] UI
+- [x] Only one instance for the app
 - [x] Shortcuts
-- [ ] Fix versions yarn
-- [ ] Animation
-- [ ] Delete Copied items for existing item
-- [ ] Delete Item functionality
+- [x] Delete Copied items for existing item
+- [x] Delete Item functionality (today)
+- [ ] Search functionality
+- [x] Add repear method to remove old data (today)
 - [x] Remove .json
 - [ ] text Overflow
-- [ ] Add repear method to remove old data
+- [ ] Animation
+- [ ] Fix versions, example yarn
+- [ ] UI
+- [ ] Simplify Store logic
+- [ ] Bug when first item is deleted
+- [ ] Performance testing
+- [ ] Race conditions?

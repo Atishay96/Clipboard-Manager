@@ -6,7 +6,9 @@ interface ItemList {
 interface Window {
     api: {
         async requestHistory(): ItemList[];
-        async copyToClipboard(text: string): void;
+        async copyToClipboard(historyItem: ItemList, index: number): void;
+        deleteEntry(index: number): void;
         entryAdded(callback: Function): void;
+        entryRemoved(callback: Function): void;
     };
 }

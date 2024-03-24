@@ -4,20 +4,19 @@ const path = require('path');
 const createWindow = () => {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
+    const WIN_WIDTH = 500;
 
     const window = new BrowserWindow({
-        width: 500,
+        width: WIN_WIDTH,
         height,
-        x: width-500,
+        x: width,
         y: height,
         resizable: false,
         movable: false,
-        Visible: false,
         alwaysOnTop: true,
         skipTaskbar: true,
         autoHideMenuBar: true,
         opacity: 0.8,
-        hiddenInMissionControl: true,
         roundedCorners: true,
         titleBarStyle: 'hidden',
         webPreferences: {
@@ -26,9 +25,8 @@ const createWindow = () => {
             contextIsolation: true,
         },
     });
-    // window.setWindowButtonVisibility(false);
-    // window.webContents.openDevTools({ mode: 'detach' });
-
+    window.webContents.openDevTools();
+    window.hide();
 
     window.loadFile(path.join(__dirname, '../dist/index.html'));
     window.on('blur', () => {
@@ -37,17 +35,33 @@ const createWindow = () => {
         }
     });
 
+    window.on('show', () => {
+        window.setPosition(width - WIN_WIDTH, 0, true);
+    });
+
+    window.on('hide', () => {
+        window.setPosition(width - WIN_WIDTH, 0, true);
+    });
+
     return window;
+};
+
+const showWindow = (window) => {
+    window.show();
+};
+
+const hideWindow = (window) => {
+    window.hide();
 };
 
 const toggleWindow = async (window) => {
     if (window.isDestroyed()) {
         await createWindow();
-        window.show();
+        showWindow(window);
         return;
     };
 
-    window.isVisible() ? window.hide() : window.show();
+    window.isVisible() ? hideWindow(window) : showWindow(window);
 };
 
 module.exports = {

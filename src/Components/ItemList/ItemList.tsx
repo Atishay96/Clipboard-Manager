@@ -5,22 +5,19 @@ import Typography from '@mui/material/Typography';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import Button from '@mui/material/Button';
 
 import { ItemList as ItemListType } from '../../Types/types';
 
 interface OwnProps {
     items: ItemListType[];
 }
-{/* <Card key={i} onClick={(e) => {
-    e.preventDefault();
-    window.api.copyToClipboard(item.value);
-}}>
-    <CardContent>
-        {item.value}
-    </CardContent>
-</Card> */}
 
 const ItemList = (props: OwnProps) => {
+    const handleOnClick = (item: ItemList, i: number) => {
+        window.api.copyToClipboard(item, i);
+    };
+
     return (
     <>
         <Typography gutterBottom variant="h6" sx={{
@@ -40,13 +37,18 @@ const ItemList = (props: OwnProps) => {
                         width: '100%',
                         cursor: 'pointer',
                     }} key={i} onClick={(e) => {
-                        e.preventDefault();
-                        window.api.copyToClipboard(item.value);
+                        handleOnClick(item, i);
                     }}>
-                        <CardContent>
+                        <CardContent sx={{
+                            display: 'flex',
+                        }}>
                             <ListItemText
-                                primary={item.value}
+                                primary={`${i+1}. ${item.value}`}
                             />
+                            <Button onClick={(e) => {
+                                e.stopPropagation();
+                                window.api.deleteEntry(i);
+                            }}>Delete</Button>
                         </CardContent>
                     </Card>
                 </ListItem>

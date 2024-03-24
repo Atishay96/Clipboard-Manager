@@ -7,12 +7,22 @@ const requestHistoryListenerHandler = (store, window) => {
 };
 
 const copyToClipboardListenerHandler = (store, window) => {
-    return async (event, data) => {
-        clipboard.writeText(data);
+    return async (event, data, index) => {
+        store.remove(index);
+        window.webContents.send('entryRemoved', index);
+        clipboard.writeText(data.value);
+    };
+};
+
+const deleteEntryHandeler = (store, window) => {
+    return async (event, index) => {
+        store.remove(index);
+        window.webContents.send('entryRemoved', index);
     };
 }
 
 module.exports = {
     requestHistoryListenerHandler,
     copyToClipboardListenerHandler,
+    deleteEntryHandeler,
 };
