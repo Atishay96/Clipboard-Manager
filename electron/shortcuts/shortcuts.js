@@ -23,7 +23,7 @@ const registerShortcuts = (window, fetchAndUpdateClipboard) => {
         unregisterCopySelectedItemShortcut();
     });
 
-    window.mainWindow.on('hide', () => {
+    window.mainWindow.on('close', () => {
         unregisterCopySelectedItemShortcut();
     });
 };
