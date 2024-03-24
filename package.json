@@ -17,6 +17,7 @@
     "typescript": "^5.4.3"
   },
   "devDependencies": {
+    "@electron/packager": "^18.1.3",
     "@types/electron": "^1.6.10",
     "@types/webpack": "^5.28.5",
     "@types/webpack-dev-server": "^4.7.2",
@@ -32,6 +33,9 @@
     "start": "webpack-dev-server --mode development",
     "build": "webpack --mode production",
     "electron:start": "electron .",
-    "electron:run": "webpack --mode production; electron ."
+    "electron:run": "webpack --mode production; electron .",
+    "package-mac": "electron-packager . --overwrite --dir --mac --universal --platform=darwin --icon=assets/clipboard-icon.png --prune=true --out=release-builds",
+    "package-win": "electron-packager . clipboard --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/clipboard-icon.png --prune=true --out=release-builds --version-string.CompanyName=CM --version-string.FileDescription=CM --version-string.ProductName=\"clipboard\"",
+    "package-linux": "electron-packager . clipboard --overwrite --platform=linux --arch=x64 --icon=assets/clipboard-icon.png --out=release-builds"
   }
 }

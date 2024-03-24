@@ -25,7 +25,7 @@ const createWindow = () => {
             contextIsolation: true,
         },
     });
-    window.webContents.openDevTools();
+    // window.webContents.openDevTools();
     window.hide();
 
     window.loadFile(path.join(__dirname, '../dist/index.html'));
@@ -41,10 +41,10 @@ const createWindow = () => {
         window.setPosition(width - WIN_WIDTH, 0, true);
     });
 
-    window.on('close', (e) => {
-        e.preventDefault();
-        window.hide();
-    });
+    // window.on('close', (e) => {
+    //     e.preventDefault();
+    //     window.hide();
+    // });
 
     return window;
 };
