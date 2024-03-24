@@ -45,6 +45,14 @@ class Window {
         window.on('hide', () => {
             window.setPosition(width - WIN_WIDTH, 0, true);
         });
+
+        window.on('close', (event) => {
+            if (this.mainWindow.isDestroyed()) {
+                this.createWindow(false);
+                event.preventDefault();
+                return;
+            }
+        });
     
         this.mainWindow = window;
     };
