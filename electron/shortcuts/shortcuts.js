@@ -22,6 +22,10 @@ const registerShortcuts = (window, fetchAndUpdateClipboard) => {
     window.mainWindow.on('hide', () => {
         unregisterCopySelectedItemShortcut();
     });
+
+    window.mainWindow.on('hide', () => {
+        unregisterCopySelectedItemShortcut();
+    });
 };
 
 const registerToggleAppVisibilityShortcut = (window) => {
@@ -53,7 +57,11 @@ const registerCopySelectedItemShortcut = (fetchAndUpdateClipboard) => {
 
 const unregisterCopySelectedItemShortcut = () => {
     copyKeys.forEach(key => {
-        globalShortcut.unregister(key);
+        try {
+            globalShortcut.unregister(key);
+        } catch(error) {
+            console.error('Error while unregistering shortcut:', error)
+        }
     });
 }
 
