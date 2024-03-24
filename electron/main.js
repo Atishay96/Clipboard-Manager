@@ -35,7 +35,7 @@ const fetchAndUpdateClipboard = (store) => {
 const startListeningToClipboard = (store, window) => {
   setInterval(() => {
       const clipboardText = clipboard.readText();
-      if (store.getLastItem() !== clipboardText) {
+      if (store.getLatestItem() !== clipboardText) {
         const entry = store.insert(clipboardText);
         if (entry) {
           sendMessage(window, 'entryAdded', entry);

@@ -12,10 +12,6 @@ const os = require("os");
  *    value: String
  *  }
  */
-
-/**
- * TODO: Add repear method to remove old data
-*/
 class Store {
   constructor(opts = {}) {
     if (!opts.configName) opts.configName = 'clipboard-history';
@@ -27,7 +23,7 @@ class Store {
     this.store = this.parseStore() || [];
   }
 
-  getLastItem() {
+  getLatestItem() {
     return this.store?.length ? this.store[0].value : null;
   }
 

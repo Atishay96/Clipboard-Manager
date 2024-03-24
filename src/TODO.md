@@ -6,5 +6,6 @@
 - [ ] Animation
 - [ ] Delete Copied items for existing item
 - [ ] Delete Item functionality
-- [ ] Remove .json
+- [x] Remove .json
 - [ ] text Overflow
+- [ ] Add repear method to remove old data
