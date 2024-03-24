@@ -43,6 +43,11 @@ const createWindow = () => {
         window.setPosition(width - WIN_WIDTH, 0, true);
     });
 
+    window.on('close', (e) => {
+        e.preventDefault();
+        window.hide();
+    });
+
     return window;
 };
 
@@ -54,13 +59,7 @@ const hideWindow = (window) => {
     window.hide();
 };
 
-const toggleWindow = async (window) => {
-    if (window.isDestroyed()) {
-        await createWindow();
-        showWindow(window);
-        return;
-    };
-
+const toggleWindow = (window) => {
     window.isVisible() ? hideWindow(window) : showWindow(window);
 };
 

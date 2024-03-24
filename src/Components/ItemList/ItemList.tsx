@@ -44,6 +44,15 @@ const ItemList = (props: OwnProps) => {
                         }}>
                             <ListItemText
                                 primary={`${i+1}. ${item.value}`}
+                                sx={{
+                                    maxHeight: 50,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    position: 'relative',
+                                    WebkitBoxOrient: 'vertical',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                }}
                             />
                             <Button onClick={(e) => {
                                 e.stopPropagation();
