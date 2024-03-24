@@ -19,7 +19,9 @@ const createTray = () => {
 };
 
 const connectToStore = () => {
-  const store = new Store();
+  const store = new Store({
+    lastCopiedItem: clipboard.readText(),
+  });
   return store;
 };
 
@@ -38,7 +40,7 @@ const fetchAndUpdateClipboard = (store) => {
 const startListeningToClipboard = (store, window) => {
   setInterval(() => {
     const clipboardText = clipboard.readText();
-    if (store.getLatestItem() !== clipboardText) {
+    if (store.getLatestItem() !== clipboardText && store.getFirstItem() !== clipboardText) {
       const entry = store.insert(clipboardText);
       if (entry) {
         sendMessage(window, 'entryAdded', entry);

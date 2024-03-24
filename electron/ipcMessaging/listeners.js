@@ -8,15 +8,19 @@ const requestHistoryListenerHandler = (store, window) => {
 
 const copyToClipboardListenerHandler = (store, window) => {
     return async (event, data, index) => {
+        if (index === 0) {
+            clipboard.writeText(data.value);
+            return;
+        }
         store.remove(index);
         window.webContents.send('entryRemoved', index);
         clipboard.writeText(data.value);
     };
 };
 
-const deleteEntryHandeler = (store, window) => {
+const deleteEntryHandler = (store, window) => {
     return async (event, index) => {
-        store.remove(index);
+        store.remove(index, clipboard.readText());
         window.webContents.send('entryRemoved', index);
     };
 }
@@ -24,5 +28,5 @@ const deleteEntryHandeler = (store, window) => {
 module.exports = {
     requestHistoryListenerHandler,
     copyToClipboardListenerHandler,
-    deleteEntryHandeler,
+    deleteEntryHandler,
 };

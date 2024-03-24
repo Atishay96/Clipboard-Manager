@@ -20,6 +20,7 @@ class Store {
     const userDataPath = (app || remote.app).getPath('userData');
     console.log('File stored at', userDataPath);
 
+    this.lastCopiedItem = opts.lastCopiedItem || null;
     this.path = path.join(userDataPath, opts.historyFileName);
     this.configPath = path.join(userDataPath, opts.configName);
 
@@ -67,7 +68,11 @@ class Store {
   }
 
   getLatestItem() {
-    return this.store?.length ? this.store[0].value : null;
+    return this.lastCopiedItem;
+  }
+
+  getFirstItem() {
+    return this.store.length && this.store[0].value || null;
   }
 
   getList() {
@@ -80,6 +85,7 @@ class Store {
       date: new Date(),
       value,
     };
+    this.lastCopiedItem = value;
     this.store.unshift(item);
     /**
       * Syncronous file read is intentional as we don't want to lose any data
@@ -93,8 +99,11 @@ class Store {
     fs.writeFileSync(this.path, fileData.reverse().join(''), 'utf-8');
   }
 
-  remove(index = 0) {
+  remove(index = 0, currentClipboardText) {
     if (index >= this.store.length) return;
+    if (index === 0) {
+      this.lastCopiedItem = currentClipboardText;
+    }
     this.store.splice(index, 1);
 
     // TODO: Consider using truncate instead of rewriting the file

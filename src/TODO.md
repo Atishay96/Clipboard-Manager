@@ -6,11 +6,12 @@
 - [ ] Search functionality
 - [x] Add repear method to remove old data (today)
 - [x] Remove .json
-- [ ] text Overflow
+- [x] text Overflow
 - [ ] Animation
 - [ ] Fix versions, example yarn
 - [ ] UI
 - [ ] Simplify Store logic
-- [ ] Bug when first item is deleted
+- [x] Bug when first item is deleted
 - [ ] Performance testing
 - [ ] Race conditions?
+- [ ] Visual alert saying text copied
