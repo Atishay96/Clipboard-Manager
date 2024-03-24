@@ -9,7 +9,7 @@ const initListeners = (store, window) => {
 };
 
 const sendMessage = (window, channel, data) => {
-    window.webContents.send(channel, data);
+    window.mainWindow.webContents.send(channel, data);
 }
 
 module.exports = {

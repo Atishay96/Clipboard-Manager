@@ -4,7 +4,7 @@ const path = require('path');
 const Store = require('./store/store');
 const { initListeners, sendMessage } = require('./ipcMessaging/ipc');
 const { registerShortcuts } = require('./shortcuts/shortcuts');
-const { createWindow, toggleWindow } = require('./window');
+const Window = require('./window');
 
 let window;
 let tray;
@@ -12,7 +12,7 @@ let tray;
 const createTray = () => {
   tray = new Tray(path.join(__dirname, '../assets/clipboard-icon.png'));
   tray.on('click', (event) => {
-    toggleWindow(window);
+    window.toggleWindow();
   });
 
   tray.setToolTip('Clipboard Mananger');
@@ -54,7 +54,8 @@ const init = async () => {
   const isPrimaryInstance = app.requestSingleInstanceLock('clipboard-manager');
   if (!isPrimaryInstance) process.exit(0);
 
-  window = await createWindow();
+  window = new Window();
+  window.createWindow();
   createTray();
   const store = connectToStore();
   await initListeners(store, window);
@@ -66,8 +67,4 @@ app.whenReady().then(init);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
-});
-
-app.on('activate', () => {
-  if (window === null || window.isDestroyed()) createWindow();
 });

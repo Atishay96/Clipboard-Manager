@@ -1,6 +1,5 @@
 const { globalShortcut } = require('electron');
 const keys = require('./keys');
-const { toggleWindow } = require('../window');
 
 const copyKeys = [
     keys.option1,
@@ -16,11 +15,11 @@ const copyKeys = [
 
 const registerShortcuts = (window, fetchAndUpdateClipboard) => {
     registerToggleAppVisibilityShortcut(window);
-    window.on('show', () => {
+    window.mainWindow.on('show', () => {
         registerCopySelectedItemShortcut(fetchAndUpdateClipboard);
     });
 
-    window.on('hide', () => {
+    window.mainWindow.on('hide', () => {
         unregisterCopySelectedItemShortcut();
     });
 };
@@ -32,7 +31,7 @@ const registerToggleAppVisibilityShortcut = (window) => {
     }
 
     globalShortcut.register(keys.toggleAppVisibility, () => {
-        toggleWindow(window);
+        window.toggleWindow();
     });
 };
 

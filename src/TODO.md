@@ -8,10 +8,10 @@
 - [x] Remove .json
 - [x] text Overflow
 - [ ] Animation
-- [ ] Fix versions, example yarn
 - [ ] UI
 - [ ] Simplify Store logic
 - [x] Bug when first item is deleted
 - [ ] Performance testing
-- [ ] Race conditions?
+- [x] Race conditions
 - [x] Visual alert saying text copied
+- [ ] Update ReadMe

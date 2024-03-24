@@ -2,7 +2,7 @@ const { clipboard } = require('electron');
 const requestHistoryListenerHandler = (store, window) => {
     return async (event) => {
         const history = await store.getList(); 
-        window.webContents.send('updatedHistory', history);
+        window.mainWindow.webContents.send('updatedHistory', history);
     };
 };
 
@@ -13,7 +13,7 @@ const copyToClipboardListenerHandler = (store, window) => {
             return;
         }
         store.remove(index);
-        window.webContents.send('entryRemoved', index);
+        window.mainWindow.webContents.send('entryRemoved', index);
         clipboard.writeText(data.value);
     };
 };
@@ -21,7 +21,7 @@ const copyToClipboardListenerHandler = (store, window) => {
 const deleteEntryHandler = (store, window) => {
     return async (event, index) => {
         store.remove(index, clipboard.readText());
-        window.webContents.send('entryRemoved', index);
+        window.mainWindow.webContents.send('entryRemoved', index);
     };
 }
 
