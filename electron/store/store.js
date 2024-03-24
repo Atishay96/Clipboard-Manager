@@ -21,15 +21,14 @@ class Store {
     if (!opts.configName) opts.configName = 'clipboard-history';
 
     const userDataPath = (app || remote.app).getPath('userData');
-    this.path = path.join(userDataPath, opts.configName + '.json');
+    this.path = path.join(userDataPath, opts.configName);
     console.log('File stored at', userDataPath);
 
     this.store = this.parseStore() || [];
-    this.lastItem = this.store.length ? this.store[this.store.length - 1].value : null;
   }
 
   getLastItem() {
-    return this.lastItem;
+    return this.store?.length ? this.store[0].value : null;
   }
 
   getList() {
@@ -42,7 +41,6 @@ class Store {
       date: new Date(),
       value,
     };
-    this.lastItem = item.value;
     this.store.unshift(item);
     /**
       * Syncronous file read is intentional as we don't want to lose any data
