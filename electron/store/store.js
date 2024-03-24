@@ -33,7 +33,7 @@ class Store {
   }
 
   getList() {
-    return this.store.reverse();
+    return this.store;
   }
 
   insert(value) {
@@ -43,7 +43,7 @@ class Store {
       value,
     };
     this.lastItem = item.value;
-    this.store.push(item);
+    this.store.unshift(item);
     /**
       * Syncronous file read is intentional as we don't want to lose any data
     **/
@@ -63,7 +63,7 @@ class Store {
           console.error('Error parsing store', error, line);
         }
       });
-      return store;
+      return store.reverse();
     } catch(error) {
       console.error('Error parsing store', error);
       return null;

@@ -1,4 +1,10 @@
-[ ] Security issues
-[ ] Only one instance for the app
-[ ] UI
-[ ] Shortcuts
+- [ ] Security issues
+- [ ] Only one instance for the app
+- [ ] UI
+- [x] Shortcuts
+- [ ] Fix versions yarn
+- [ ] Animation
+- [ ] Delete Copied items for existing item
+- [ ] Delete Item functionality
+- [ ] Remove .json
+- [ ] text Overflow

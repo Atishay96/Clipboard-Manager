@@ -1,62 +1,18 @@
-const { app, BrowserWindow, clipboard, remote, screen, Tray } = require('electron');
+const { app, clipboard, Tray } = require('electron');
 const path = require('path');
 
 const Store = require('./store/store');
 const { initListeners, sendMessage } = require('./ipcMessaging/ipc');
+const { registerShortcuts } = require('./shortcuts/shortcuts');
+const { createWindow, toggleWindow } = require('./window');
 
 let window;
 let tray;
 
-const createWindow = () => {
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
-
-  window = new BrowserWindow({
-    width: 500,
-    height,
-    x: width-500,
-    y: height,
-    resizable: false,
-    movable: false,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    autoHideMenuBar: true,
-    opacity: 0.8,
-    hiddenInMissionControl: true,
-    roundedCorners: true,
-    titleBarStyle: 'hidden',
-    webPreferences: {
-      nodeIntegration: true,
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-    },
-  });
-  window.setWindowButtonVisibility(false);
-  window.webContents.openDevTools({ mode: 'detach' });
-
-
-  window.loadFile(path.join(__dirname, '../dist/index.html'));
-  window.on('blur', () => {
-    if (!window.webContents.isDevToolsOpened()) {
-      window.hide()
-    }
-  });
-};
-
-const toggleWindow = async () => {
-  if (window.isDestroyed()) {
-    await createWindow();
-    window.show();
-    return;
-  };
-
-  window.isVisible() ? window.hide() : window.show();
-};
-
 const createTray = () => {
   tray = new Tray(path.join(__dirname, '../assets/clipboard-icon.png'));
   tray.on('click', (event) => {
-    toggleWindow(tray);
+    toggleWindow(window);
   });
 
   tray.setToolTip('Clipboard Mananger');
@@ -67,7 +23,16 @@ const connectToStore = () => {
   return store;
 };
 
-const startListeningToClipboard = (store) => {
+const fetchAndUpdateClipboard = (store) => {
+  return (key) => {
+    const history = store.getList();
+    if (history[key]) {
+      clipboard.writeText(history[key].value);
+    }
+  };
+}
+
+const startListeningToClipboard = (store, window) => {
   setInterval(() => {
       const clipboardText = clipboard.readText();
       if (store.getLastItem() !== clipboardText) {
@@ -80,11 +45,12 @@ const startListeningToClipboard = (store) => {
 };
 
 const init = async () => {
-  await createWindow();
+  window = await createWindow();
   createTray();
   const store = connectToStore();
   await initListeners(store, window);
-  await startListeningToClipboard(store);
+  registerShortcuts(window, fetchAndUpdateClipboard(store));
+  await startListeningToClipboard(store, window);
 }
 
 app.whenReady().then(init);
