@@ -1,4 +1,3 @@
-- [ ] Security issues
 - [x] Only one instance for the app
 - [x] Shortcuts
 - [x] Delete Copied items for existing item
@@ -9,9 +8,9 @@
 - [x] text Overflow
 - [ ] Animation
 - [ ] UI
-- [ ] Simplify Store logic
 - [x] Bug when first item is deleted
 - [ ] Performance testing
 - [x] Race conditions
 - [x] Visual alert saying text copied
-- [ ] Update ReadMe
+- [x] Update Readme
+- [ ] Security issues
