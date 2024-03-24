@@ -30,7 +30,7 @@ class Store {
 
   /**
    * Repear logic
-   * 1. Get last updated date from config
+   * 1. Get last updated at date from config
    * 2. If difference is more than 1 day, execute the job
    * 3. Remove entries older than the last updated date from the store
    * 4. Update file using fs
@@ -39,7 +39,7 @@ class Store {
    */
   _repearJob() {
     let configFileData;
-    const ONE_DAY = 1000;
+    const ONE_DAY = 1000 * 60 * 60 * 24;
     try {
       configFileData = fs.readFileSync(this.configPath, 'utf-8');
     } catch (error) {}
@@ -50,17 +50,26 @@ class Store {
       config = JSON.parse(configFileData);
     }
 
+    this._removeOldEntries(config);
+
     const lastUpdatedAt = new Date(config.lastUpdatedAt);
     if ((new Date()).getTime() - lastUpdatedAt.getTime() <= ONE_DAY) {
-      this._removeOldEntries(config, lastUpdatedAt);
       setTimeout(() => {
         this._repearJob();
       }, ONE_DAY);
     }
   }
 
-  _removeOldEntries(config, lastUpdatedAt) {
-    const store = this.store.filter((item) => new Date(item.date) > lastUpdatedAt);
+  _removeOldEntries(config) {
+    const deleteEntriesBeforeDate = new Date();
+    deleteEntriesBeforeDate.setDate(deleteEntriesBeforeDate.getDate() - 30); // Delete entries older than 30 days
+    const currentStoreLength = this.store.length;
+
+    const store = this.store.filter((item) => new Date(item.date) > deleteEntriesBeforeDate);
+
+    // If no changes, don't update anything
+    if (currentStoreLength === store.length) return;
+
     this.store = store;
     this._parseAndRewriteFile();
     config.lastUpdatedAt = new Date();
