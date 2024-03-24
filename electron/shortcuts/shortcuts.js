@@ -37,9 +37,17 @@ const registerToggleAppVisibilityShortcut = (window) => {
 };
 
 const registerCopySelectedItemShortcut = (fetchAndUpdateClipboard) => {
+    let isBlocked = false;
     copyKeys.forEach((key, index) => {
         globalShortcut.register(key, () => {
+            if (isBlocked) {
+                return;
+            }
+            isBlocked = true;
             fetchAndUpdateClipboard(index);
+            setTimeout(() => {
+                isBlocked = false;
+            }, 1000);
         });
     });
 }

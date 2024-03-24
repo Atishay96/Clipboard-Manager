@@ -32,6 +32,7 @@ const fetchAndUpdateClipboard = (store) => {
       clipboard.writeText(history[key].value);
       store.remove(key);
 
+      sendMessage(window, 'showCopiedText');
       sendMessage(window, 'entryRemoved', key);
     }
   };

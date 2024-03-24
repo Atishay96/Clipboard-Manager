@@ -11,11 +11,14 @@ import { ItemList as ItemListType } from '../../Types/types';
 
 interface OwnProps {
     items: ItemListType[];
+    showCopiedMessageHandler: () => void;
+    deleteEntryMessageHandler: () => void;
 }
 
 const ItemList = (props: OwnProps) => {
     const handleOnClick = (item: ItemList, i: number) => {
         window.api.copyToClipboard(item, i);
+        props.showCopiedMessageHandler();
     };
 
     return (
@@ -57,6 +60,7 @@ const ItemList = (props: OwnProps) => {
                             <Button onClick={(e) => {
                                 e.stopPropagation();
                                 window.api.deleteEntry(i);
+                                props.deleteEntryMessageHandler();
                             }}>Delete</Button>
                         </CardContent>
                     </Card>

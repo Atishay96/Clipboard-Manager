@@ -19,4 +19,7 @@ contextBridge.exposeInMainWorld('api', {
     copyToClipboard: (historyItem, index) => {
         ipcRenderer.send('copyToClipboard', historyItem, index);
     },
+    showCopiedText: (callback) => {
+        ipcRenderer.on('showCopiedText', () => callback());
+    }
 });

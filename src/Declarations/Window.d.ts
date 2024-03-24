@@ -10,5 +10,6 @@ interface Window {
         deleteEntry(index: number): void;
         entryAdded(callback: Function): void;
         entryRemoved(callback: Function): void;
+        showCopiedText(callback: Function): void;
     };
 }

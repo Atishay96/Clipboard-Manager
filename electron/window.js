@@ -30,9 +30,7 @@ const createWindow = () => {
 
     window.loadFile(path.join(__dirname, '../dist/index.html'));
     window.on('blur', () => {
-        if (!window.webContents.isDevToolsOpened()) {
-            window.hide()
-        }
+        window.hide()
     });
 
     window.on('show', () => {

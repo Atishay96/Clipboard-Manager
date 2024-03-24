@@ -14,4 +14,4 @@
 - [x] Bug when first item is deleted
 - [ ] Performance testing
 - [ ] Race conditions?
-- [ ] Visual alert saying text copied
+- [x] Visual alert saying text copied
