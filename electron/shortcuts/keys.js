@@ -9,6 +9,7 @@ const keys = {
     option7: 'CommandOrControl+7',
     option8: 'CommandOrControl+8',
     option9: 'CommandOrControl+9',
+    escape: 'Escape',
 };
 
 module.exports = keys;

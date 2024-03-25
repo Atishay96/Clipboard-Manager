@@ -17,14 +17,17 @@ const registerShortcuts = (window, fetchAndUpdateClipboard) => {
     registerToggleAppVisibilityShortcut(window);
     window.mainWindow.on('show', () => {
         registerCopySelectedItemShortcut(fetchAndUpdateClipboard);
+        registerEscapeShortcut(window);
     });
 
     window.mainWindow.on('hide', () => {
         unregisterCopySelectedItemShortcut();
+        unregisterEscapeShortcut(window);
     });
 
     window.mainWindow.on('close', () => {
         unregisterCopySelectedItemShortcut();
+        unregisterEscapeShortcut();
     });
 };
 
@@ -53,17 +56,33 @@ const registerCopySelectedItemShortcut = (fetchAndUpdateClipboard) => {
             }, 1000);
         });
     });
-}
+};
 
 const unregisterCopySelectedItemShortcut = () => {
     copyKeys.forEach(key => {
         try {
             globalShortcut.unregister(key);
         } catch(error) {
-            console.error('Error while unregistering shortcut:', error)
+            console.error('Error while unregistering shortcut:', error);
         }
     });
-}
+};
+
+const registerEscapeShortcut = (window) => {
+    globalShortcut.register(keys.escape, () => {
+        if (window?.mainWindow && !window.mainWindow.isDestroyed()) {
+            window.hideWindow();
+        }
+    });
+};
+
+const unregisterEscapeShortcut = () => {
+    try {
+        globalShortcut.unregister(keys.escape);
+    } catch(error) {
+        console.error('Error while unregistering shortcut:', error);
+    }
+};
 
 module.exports = {
     registerShortcuts,
