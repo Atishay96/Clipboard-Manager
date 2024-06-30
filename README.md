@@ -11,6 +11,7 @@ A simple and efficient clipboard manager built on Electron and React.
 - Works seamlessly on Windows, macOS, and Linux
 - User-friendly interface
 - Hotkeys are supported
+- Search functionality
 
 ## Limitations
 

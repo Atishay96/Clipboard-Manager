@@ -2,7 +2,7 @@
 - [x] Shortcuts
 - [x] Delete Copied items for existing item
 - [x] Delete Item functionality (today)
-- [ ] Search functionality
+- [x] Search functionality
 - [x] Add repear method to remove old data (today)
 - [x] Remove .json
 - [x] text Overflow
