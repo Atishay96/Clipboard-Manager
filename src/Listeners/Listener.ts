@@ -17,10 +17,6 @@ const useListenerHook = (copyToClipboardCallback: (index: number) => void) => {
         if (metaKey && copyKeys[key]) {
             copyToClipboardCallback(parseInt(key) - 1);
         }
-
-        if (metaKey && shiftKey && key === 'F') {
-            console.log('CALLED');
-        }
     };
 
     document.addEventListener('keydown', keyDownHandler);
