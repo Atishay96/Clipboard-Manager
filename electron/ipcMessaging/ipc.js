@@ -9,6 +9,7 @@ const initListeners = (store, window) => {
 };
 
 const sendMessage = (window, channel, data) => {
+    if (!window?.mainWindow?.webContents) return;
     window.mainWindow.webContents.send(channel, data);
 }
 
