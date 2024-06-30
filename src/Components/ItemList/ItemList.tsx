@@ -6,29 +6,80 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
 
+import Search from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
+
+import useListenerHook from '../../Listeners/Listener';
 import { ItemList as ItemListType } from '../../Types/types';
 
 interface OwnProps {
     items: ItemListType[];
     showCopiedMessageHandler: () => void;
     deleteEntryMessageHandler: () => void;
+    resetToOriginal: () => void;
+    filterItems: (value: string) => void;
 }
 
 const ItemList = (props: OwnProps) => {
-    const handleOnClick = (item: ItemList, i: number) => {
+    const [isButtonExpanded, setIsButtonExpanded] = React.useState(false);
+
+    useListenerHook((index: number) => {
+        if (index >= props.items.length) return;
+        copyToClipboard(props.items[index], index);
+    });
+
+    const copyToClipboard = (item: ItemList, i: number) => {
         window.api.copyToClipboard(item, i);
         props.showCopiedMessageHandler();
     };
 
+    const handleOnKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            setIsButtonExpanded(false);
+            props.resetToOriginal();
+        }
+    }
+
+    const searchBarEl = (
+        <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+            <Box ml="auto" mr="0px">
+                <TextField
+                    onChange={(e) => {props.filterItems(e.target.value)}}
+                    onKeyDown={(e) => {handleOnKeyDown(e)}}
+                    label="Search" variant="standard" autoFocus
+                />
+                <Button
+                    onClick={() => {
+                        setIsButtonExpanded(false);
+                        props.resetToOriginal();
+                    }}
+                >
+                    <CloseIcon sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
+                </Button>
+            </Box>
+        </Box>
+    );
+
+    const searchIconEl = (
+        <Box display="inline-flex" mt="5px" position="absolute" right="10px">
+            <Button onClick={() => { setIsButtonExpanded(true); }} aria-label="Search history">
+                <Search />
+            </Button>
+        </Box>
+    );
+
     return (
     <>
-        <Typography gutterBottom variant="h6" sx={{
-            top: 10,
-            textAlign: 'center',
-        }}>
-            Clipboard Manager
-        </Typography>
+        <Box mt="15px" textAlign="center">
+            <Typography gutterBottom variant="h6" display="inline-flex">
+                Clipboard Manager
+                {!isButtonExpanded && searchIconEl}
+            </Typography>
+        </Box>
+        {isButtonExpanded && searchBarEl}
         {props.items.map((item, i) => (
             <List sx={{
                 width: '100%',
@@ -40,7 +91,7 @@ const ItemList = (props: OwnProps) => {
                         width: '100%',
                         cursor: 'pointer',
                     }} key={i} onClick={(e) => {
-                        handleOnClick(item, i);
+                        copyToClipboard(item, i);
                     }}>
                         <CardContent sx={{
                             display: 'flex',
@@ -67,6 +118,11 @@ const ItemList = (props: OwnProps) => {
                 </ListItem>
             </List>
         ))}
+        {!props.items.length && (
+            <Typography variant="h6" display="inline-flex">
+                No history found
+            </Typography>
+        )}
     </>
     );
 };

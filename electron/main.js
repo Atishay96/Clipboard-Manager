@@ -25,19 +25,6 @@ const connectToStore = () => {
   return store;
 };
 
-const fetchAndUpdateClipboard = (store) => {
-  return (key) => {
-    const history = store.getList();
-    if (history[key]) {
-      clipboard.writeText(history[key].value);
-      store.remove(key);
-
-      sendMessage(window, 'showCopiedText');
-      sendMessage(window, 'entryRemoved', key);
-    }
-  };
-}
-
 const startListeningToClipboard = (store, window) => {
   setInterval(() => {
     const clipboardText = clipboard.readText();
@@ -59,7 +46,7 @@ const init = async () => {
   createTray();
   const store = connectToStore();
   await initListeners(store, window);
-  registerShortcuts(window, fetchAndUpdateClipboard(store));
+  registerShortcuts(window);
   await startListeningToClipboard(store, window);
 }
 
