@@ -1,4 +1,4 @@
-const { app, clipboard, Tray } = require('electron');
+const { app, clipboard, Menu, Tray } = require('electron');
 const path = require('path');
 
 const Store = require('./store/store');
@@ -11,11 +11,13 @@ let tray;
 
 const createTray = () => {
   tray = new Tray(path.join(__dirname, '../assets/clipboard-icon.png'));
-  tray.on('click', (event) => {
-    window.toggleWindow();
-  });
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Toggle', type: 'normal', click: () => { window?.toggleWindow() } },
+    { label: 'Exit', type: 'normal', role: 'quit' },
+  ])
 
   tray.setToolTip('Clipboard Mananger');
+  tray.setContextMenu(contextMenu);
 };
 
 const connectToStore = () => {
@@ -41,9 +43,11 @@ const init = async () => {
   const isPrimaryInstance = app.requestSingleInstanceLock('clipboard-manager');
   if (!isPrimaryInstance) process.exit(0);
 
+  if (process.platform === 'darwin') app.dock.hide();
+
   window = new Window();
   window.createWindow();
-  createTray();
+  createTray(window);
   const store = connectToStore();
   await initListeners(store, window);
   registerShortcuts(window);
