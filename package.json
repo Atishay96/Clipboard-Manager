@@ -36,7 +36,7 @@
     "electron:start": "electron .",
     "electron:run": "webpack --mode production; electron .",
     "start:all": "yarn build && yarn electron:start",
-    "build:all": "yarn build && yarn electron:run",
+    "build:all": "yarn build && yarn package-mac",
     "package-mac": "yarn build; electron-packager . --overwrite --dir --mac --universal --platform=darwin --icon=./assets/clipboard.icns --prune=true --out=release-builds",
     "package-win": "yarn build; electron-packager . clipboard --overwrite --asar=true --platform=win32 --arch=ia32 --icon=./assets/clipboard.ico --prune=true --out=release-builds --version-string.CompanyName=CM --version-string.FileDescription=CM --version-string.ProductName=\"clipboard\"",
     "package-linux": "yarn build; electron-packager . clipboard --overwrite --platform=linux --arch=x64 --icon=./assets/clipboard.png --out=release-builds"
