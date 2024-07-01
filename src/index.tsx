@@ -37,7 +37,8 @@ const App = () => {
 
   useEffect(() => {
     const entryAddedListenerHandler = (data: ItemListType) => {
-      setItems((prevItems) => [data, ...prevItems]);
+      itemsOriginalList.current?.unshift(data);
+      setItems(itemsOriginalList.current as ItemList[]);
     };
 
     window.api.entryAdded(entryAddedListenerHandler);
