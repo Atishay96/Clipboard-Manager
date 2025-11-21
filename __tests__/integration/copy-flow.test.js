@@ -89,7 +89,7 @@ describe('Copy Flow Integration', () => {
     expect(store.getList()[0].value).toBe('Item 3'); // Should still be at top
   });
 
-  test('should move item from middle to top when copying by ID', () => {
+  test('should move item from middle to top when copying by ID', async () => {
     const handler = copyToClipboardListenerHandler(store, mockWindow);
     const list = store.getList();
     // Items are stored newest first: [Item 3, Item 2, Item 1]
@@ -97,7 +97,7 @@ describe('Copy Flow Integration', () => {
     const middleItem = list[1];
     const data = { id: middleItem.id, value: middleItem.value };
 
-    handler({}, data, middleItem.id);
+    await handler({}, data, middleItem.id);
 
     expect(clipboard.writeText).toHaveBeenCalledWith('Item 2');
     expect(store.lastCopiedItem).toBe('Item 2');
@@ -187,6 +187,81 @@ describe('Copy Flow Integration', () => {
     expect(store.lastCopiedItem).toBe('Item 2');
     const newList = store.getList();
     expect(newList[0].value).toBe('Item 2'); // Should be moved to top
+  });
+
+  test('should handle rapid hotkey presses without breaking', async () => {
+    const handler = copyToClipboardListenerHandler(store, mockWindow);
+    const list = store.getList();
+    
+    // Simulate rapid presses of the same hotkey (same item)
+    const item = list[1];
+    const data = { id: item.id, value: item.value };
+    
+    // Fire multiple rapid calls
+    const promises = [
+      handler({}, data, item.id),
+      handler({}, data, item.id),
+      handler({}, data, item.id),
+    ];
+    
+    await Promise.all(promises);
+    
+    // Should still work correctly - item should be at top
+    const finalList = store.getList();
+    expect(finalList[0].value).toBe(item.value);
+    expect(finalList.length).toBe(3); // No duplicates
+  });
+
+  test('should handle rapid different hotkey presses', async () => {
+    const handler = copyToClipboardListenerHandler(store, mockWindow);
+    const list = store.getList();
+    
+    // Simulate rapid presses of different hotkeys (different items)
+    const item1 = list[0];
+    const item2 = list[1];
+    const item3 = list[2];
+    
+    const promises = [
+      handler({}, { id: item1.id, value: item1.value }, item1.id),
+      handler({}, { id: item2.id, value: item2.value }, item2.id),
+      handler({}, { id: item3.id, value: item3.value }, item3.id),
+    ];
+    
+    await Promise.all(promises);
+    
+    // All operations should complete
+    // The last one processed should be at the top
+    const finalList = store.getList();
+    expect(finalList.length).toBe(3); // No items lost
+    // Verify all items still exist
+    const values = finalList.map(i => i.value);
+    expect(values).toContain('Item 1');
+    expect(values).toContain('Item 2');
+    expect(values).toContain('Item 3');
+  });
+
+  test('should prevent clipboard monitoring from interfering during manual copy', async () => {
+    const handler = copyToClipboardListenerHandler(store, mockWindow);
+    const list = store.getList();
+    const item = list[0];
+    const data = { id: item.id, value: item.value };
+    
+    // Set manual copy in progress
+    store.setManualCopyInProgress(true);
+    
+    // Try to insert (simulating clipboard monitoring)
+    const insertResult = store.insert('Should not be inserted');
+    
+    // Should return null because manual copy is in progress
+    expect(insertResult).toBeNull();
+    
+    // Clear the flag
+    store.setManualCopyInProgress(false);
+    
+    // Now insert should work
+    const insertResult2 = store.insert('Should be inserted');
+    expect(insertResult2).not.toBeNull();
+    expect(insertResult2.value).toBe('Should be inserted');
   });
 });
 

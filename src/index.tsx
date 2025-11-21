@@ -115,18 +115,37 @@ const App = () => {
 
     // Handler for when the full history is updated (e.g., after moving an item)
     // This ensures the UI is always in sync with the store
+    // Throttle updates to prevent flickering from rapid hotkey presses
+    let updateTimeout: NodeJS.Timeout | null = null;
+    let pendingHistory: ItemListType[] | null = null;
+    
     const updatedHistoryHandler = (history: ItemListType[]) => {
-      // Use JSON serialization to ensure complete isolation and no shared references
-      const historyString = JSON.stringify(history);
-      const historyCopy = JSON.parse(historyString).map((item: any) => ({
-        id: item.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Ensure ID exists
-        date: new Date(item.date),
-        value: String(item.value) // Ensure value is a string
-      }));
-      itemsOriginalList.current = historyCopy;
-      // Always update displayed items to match the store
-      // If user is searching, they'll need to search again, but at least data is consistent
-      setItems([...historyCopy]); // Use spread to create new array reference
+      // Store the latest history
+      pendingHistory = history;
+      
+      // Clear existing timeout
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+      
+      // Throttle UI updates - batch rapid updates together
+      updateTimeout = setTimeout(() => {
+        if (pendingHistory) {
+          // Use JSON serialization to ensure complete isolation and no shared references
+          const historyString = JSON.stringify(pendingHistory);
+          const historyCopy = JSON.parse(historyString).map((item: any) => ({
+            id: item.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Ensure ID exists
+            date: new Date(item.date),
+            value: String(item.value) // Ensure value is a string
+          }));
+          itemsOriginalList.current = historyCopy;
+          // Always update displayed items to match the store
+          // If user is searching, they'll need to search again, but at least data is consistent
+          setItems([...historyCopy]); // Use spread to create new array reference
+          pendingHistory = null;
+        }
+        updateTimeout = null;
+      }, 50); // 50ms throttle - batches rapid updates
     };
 
     window.api.entryAdded(entryAddedListenerHandler);

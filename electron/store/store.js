@@ -27,6 +27,11 @@ class Store {
 
     this.store = this.parseStore() || [];
     this._repearJob();
+    
+    // Operation queue to prevent concurrent file writes
+    this._operationQueue = [];
+    this._isProcessingQueue = false;
+    this._isManualCopyInProgress = false;
   }
 
   /**
@@ -114,6 +119,12 @@ class Store {
 
   insert(value) {
     if (value === '' || value === undefined || value === null) return;
+    
+    // If manual copy is in progress, don't insert (prevents clipboard monitoring interference)
+    if (this._isManualCopyInProgress) {
+      return null;
+    }
+    
     const item = {
       id: this._generateId(),
       date: new Date(),
@@ -133,6 +144,42 @@ class Store {
     fs.writeFileSync(this.path, fileData.reverse().join(''), 'utf-8');
   }
 
+  // Queue operations to prevent concurrent file writes
+  async _queueOperation(operation) {
+    return new Promise((resolve, reject) => {
+      this._operationQueue.push({ operation, resolve, reject });
+      this._processQueue();
+    });
+  }
+
+  async _processQueue() {
+    if (this._isProcessingQueue || this._operationQueue.length === 0) {
+      return;
+    }
+
+    this._isProcessingQueue = true;
+
+    while (this._operationQueue.length > 0) {
+      const { operation, resolve, reject } = this._operationQueue.shift();
+      try {
+        const result = await operation();
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    }
+
+    this._isProcessingQueue = false;
+  }
+
+  setManualCopyInProgress(flag) {
+    this._isManualCopyInProgress = flag;
+  }
+
+  isManualCopyInProgress() {
+    return this._isManualCopyInProgress;
+  }
+
   remove(index = 0, currentClipboardText) {
     if (index >= this.store.length) return;
     if (index === 0) {
@@ -144,15 +191,17 @@ class Store {
     this._parseAndRewriteFile();
   }
 
-  removeById(id, currentClipboardText) {
-    const index = this.store.findIndex(item => item.id === id);
-    if (index === -1) return false;
-    if (index === 0) {
-      this.lastCopiedItem = currentClipboardText;
-    }
-    this.store.splice(index, 1);
-    this._parseAndRewriteFile();
-    return true;
+  async removeById(id, currentClipboardText) {
+    return this._queueOperation(async () => {
+      const index = this.store.findIndex(item => item.id === id);
+      if (index === -1) return false;
+      if (index === 0) {
+        this.lastCopiedItem = currentClipboardText;
+      }
+      this.store.splice(index, 1);
+      this._parseAndRewriteFile();
+      return true;
+    });
   }
 
   findById(id) {

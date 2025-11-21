@@ -157,13 +157,13 @@ describe('Store', () => {
   });
 
   describe('removeById', () => {
-    test('should remove item by ID', () => {
+    test('should remove item by ID', async () => {
       store.insert('first');
       const item = store.insert('second');
       store.insert('third');
       
       const initialLength = store.getList().length;
-      const removed = store.removeById(item.id, 'current');
+      const removed = await store.removeById(item.id, 'current');
       
       expect(removed).toBe(true);
       const list = store.getList();
@@ -171,16 +171,16 @@ describe('Store', () => {
       expect(list.find(i => i.id === item.id)).toBeUndefined();
     });
 
-    test('should return false for non-existent ID', () => {
-      const removed = store.removeById('non-existent-id', 'current');
+    test('should return false for non-existent ID', async () => {
+      const removed = await store.removeById('non-existent-id', 'current');
       expect(removed).toBe(false);
     });
 
-    test('should update lastCopiedItem when removing first item', () => {
+    test('should update lastCopiedItem when removing first item', async () => {
       store.insert('first');
       const secondItem = store.insert('second'); // This becomes index 0 (newest first)
       
-      store.removeById(secondItem.id, 'new current');
+      await store.removeById(secondItem.id, 'new current');
       expect(store.getLatestItem()).toBe('new current');
     });
   });
@@ -289,6 +289,90 @@ describe('Store', () => {
       });
       
       expect(emptyStore.getList()).toEqual([]);
+    });
+  });
+
+  describe('operation queue', () => {
+    test('should queue operations to prevent concurrent file writes', async () => {
+      store.insert('item1');
+      store.insert('item2');
+      store.insert('item3');
+      
+      const list = store.getList();
+      const item1 = list.find(i => i.value === 'item1');
+      const item2 = list.find(i => i.value === 'item2');
+      
+      // Fire multiple remove operations rapidly
+      const promises = [
+        store.removeById(item1.id, 'current1'),
+        store.removeById(item2.id, 'current2'),
+      ];
+      
+      await Promise.all(promises);
+      
+      // Both should complete successfully
+      const finalList = store.getList();
+      expect(finalList.length).toBe(1); // Only item3 should remain
+      expect(finalList[0].value).toBe('item3');
+    });
+
+    test('should process queue sequentially', async () => {
+      store.insert('item1');
+      store.insert('item2');
+      
+      const list = store.getList();
+      const item1 = list.find(i => i.value === 'item1');
+      const item2 = list.find(i => i.value === 'item2');
+      
+      let operationOrder = [];
+      
+      // Mock _parseAndRewriteFile to track order
+      const originalParseAndRewrite = store._parseAndRewriteFile;
+      store._parseAndRewriteFile = jest.fn(() => {
+        operationOrder.push('write');
+        originalParseAndRewrite.call(store);
+      });
+      
+      // Fire operations
+      await Promise.all([
+        store.removeById(item1.id, 'current1'),
+        store.removeById(item2.id, 'current2'),
+      ]);
+      
+      // Should have written twice (once per operation)
+      expect(operationOrder.length).toBe(2);
+    });
+  });
+
+  describe('manual copy flag', () => {
+    test('should prevent insert when manual copy is in progress', () => {
+      store.setManualCopyInProgress(true);
+      
+      const result = store.insert('should not insert');
+      
+      expect(result).toBeNull();
+      expect(store.getList().length).toBe(0);
+    });
+
+    test('should allow insert when manual copy flag is cleared', () => {
+      store.setManualCopyInProgress(true);
+      store.setManualCopyInProgress(false);
+      
+      const result = store.insert('should insert');
+      
+      expect(result).not.toBeNull();
+      expect(result.value).toBe('should insert');
+      expect(store.getList().length).toBe(1);
+    });
+
+    test('should check manual copy status', () => {
+      expect(store.isManualCopyInProgress()).toBe(false);
+      
+      store.setManualCopyInProgress(true);
+      expect(store.isManualCopyInProgress()).toBe(true);
+      
+      store.setManualCopyInProgress(false);
+      expect(store.isManualCopyInProgress()).toBe(false);
     });
   });
 });

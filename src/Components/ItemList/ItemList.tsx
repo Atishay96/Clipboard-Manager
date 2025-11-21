@@ -34,15 +34,63 @@ const ItemList = (props: OwnProps) => {
     const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
     const [removingIndex, setRemovingIndex] = React.useState<number | null>(null);
     const [searchValue, setSearchValue] = React.useState('');
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
 
     useListenerHook((index: number) => {
         if (index >= props.items.length) return;
         copyToClipboard(props.items[index]);
     });
 
+    // Close search when window loses focus or goes to background
+    React.useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden && isButtonExpanded) {
+                setIsButtonExpanded(false);
+                setSearchValue('');
+                props.resetToOriginal();
+            }
+        };
+
+        const handleBlur = () => {
+            // Small delay to check if window is actually hidden
+            setTimeout(() => {
+                if (isButtonExpanded) {
+                    setIsButtonExpanded(false);
+                    setSearchValue('');
+                    props.resetToOriginal();
+                }
+            }, 100);
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('blur', handleBlur);
+        
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('blur', handleBlur);
+        };
+    }, [isButtonExpanded, props]);
+
+    // Focus search input when search is expanded
+    React.useEffect(() => {
+        if (isButtonExpanded && searchInputRef.current) {
+            // Small delay to ensure the Collapse animation has started
+            setTimeout(() => {
+                searchInputRef.current?.focus();
+            }, 100);
+        }
+    }, [isButtonExpanded]);
+
     const copyToClipboard = (item: ItemList) => {
         window.api.copyToClipboard(item, item.id);
         props.showCopiedMessageHandler();
+        
+        // Clear and close search input after copying
+        if (searchValue || isButtonExpanded) {
+            setSearchValue('');
+            setIsButtonExpanded(false);
+            props.resetToOriginal();
+        }
     };
 
     const handleOnKeyDown = (e: React.KeyboardEvent) => {
@@ -81,6 +129,7 @@ const ItemList = (props: OwnProps) => {
         >
             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
                 <TextField
+                    inputRef={searchInputRef}
                     value={searchValue}
                     onChange={(e) => {handleSearchChange(e.target.value)}}
                     onKeyDown={(e) => {handleOnKeyDown(e)}}
