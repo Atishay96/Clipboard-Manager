@@ -11,5 +11,6 @@ interface Window {
         entryAdded(callback: Function): void;
         entryRemoved(callback: Function): void;
         showCopiedText(callback: Function): void;
+        notifyReady(): void;
     };
 }

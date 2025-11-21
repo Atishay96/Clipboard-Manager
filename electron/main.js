@@ -1,4 +1,4 @@
-const { app, clipboard, Menu, Tray } = require('electron');
+const { app, clipboard, Menu, Tray, ipcMain } = require('electron');
 const path = require('path');
 
 const Store = require('./store/store');
@@ -8,6 +8,9 @@ const Window = require('./window');
 
 let window;
 let tray;
+let store;
+let clipboardMonitoringStarted = false;
+let clipboardInterval = null;
 
 const createTray = () => {
   tray = new Tray(path.join(__dirname, '../assets/clipboard-icon.png'));
@@ -16,7 +19,7 @@ const createTray = () => {
     { label: 'Exit', type: 'normal', role: 'quit' },
   ])
 
-  tray.setToolTip('Clipboard Mananger');
+  tray.setToolTip('Clipboard Manager');
   tray.setContextMenu(contextMenu);
 };
 
@@ -28,15 +31,26 @@ const connectToStore = () => {
 };
 
 const startListeningToClipboard = (store, window) => {
-  setInterval(() => {
+  // Clear any existing interval
+  if (clipboardInterval) {
+    clearInterval(clipboardInterval);
+  }
+  clipboardInterval = setInterval(() => {
     const clipboardText = clipboard.readText();
-    if (store.getLatestItem() !== clipboardText && store.getFirstItem() !== clipboardText) {
+    if (store.getLatestItem() !== clipboardText) {
       const entry = store.insert(clipboardText);
       if (entry) {
         sendMessage(window, 'entryAdded', entry);
       }
     }
   }, 500);
+};
+
+const startClipboardMonitoringWhenReady = () => {
+  if (!clipboardMonitoringStarted && store && window) {
+    startListeningToClipboard(store, window);
+    clipboardMonitoringStarted = true;
+  }
 };
 
 const init = async () => {
@@ -48,10 +62,21 @@ const init = async () => {
   window = new Window();
   window.createWindow();
   createTray(window);
-  const store = connectToStore();
+  store = connectToStore();
   await initListeners(store, window);
   registerShortcuts(window);
-  await startListeningToClipboard(store, window);
+  
+  // Listen for React ready signal (use 'on' instead of 'once' to handle window recreation)
+  ipcMain.on('reactReady', () => {
+    startClipboardMonitoringWhenReady();
+  });
+  
+  // Fallback: start after page loads if React doesn't send ready signal
+  window.mainWindow.webContents.once('did-finish-load', () => {
+    setTimeout(() => {
+      startClipboardMonitoringWhenReady();
+    }, 1500);
+  });
 }
 
 app.whenReady().then(init);

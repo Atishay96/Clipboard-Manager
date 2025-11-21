@@ -21,5 +21,8 @@ contextBridge.exposeInMainWorld('api', {
     },
     showCopiedText: (callback) => {
         ipcRenderer.on('showCopiedText', () => callback());
+    },
+    notifyReady: () => {
+        ipcRenderer.send('reactReady');
     }
 });

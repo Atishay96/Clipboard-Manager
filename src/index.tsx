@@ -6,7 +6,7 @@ import { ItemList as ItemListType } from './Types/types';
 
 const App = () => {
   const [items, setItems] = useState<ItemListType[]>([]);
-  const itemsOriginalList = useRef<ItemList[]>();
+  const itemsOriginalList = useRef<ItemListType[]>();
   const [showCopiedMessage, setShowCopiedMessage] = React.useState(false);
   const [showDeletedMessage, setShowDeletedMessage] = React.useState(false);
 
@@ -37,11 +37,17 @@ const App = () => {
 
   useEffect(() => {
     const entryAddedListenerHandler = (data: ItemListType) => {
-      itemsOriginalList.current?.unshift(data);
-      setItems(itemsOriginalList.current as ItemList[]);
+      if (!itemsOriginalList.current) {
+        itemsOriginalList.current = [];
+      }
+      itemsOriginalList.current.unshift(data);
+      setItems([...itemsOriginalList.current]);
     };
 
     window.api.entryAdded(entryAddedListenerHandler);
+    
+    // Notify main process that React is ready to receive messages
+    window.api.notifyReady();
   }, []);
 
   useEffect(() => {
@@ -68,7 +74,7 @@ const App = () => {
   const filterItems = (searchText: string) => {
     const text = searchText.trim();
     if (!text) {
-      setItems(itemsOriginalList.current as ItemList[]);
+      setItems(itemsOriginalList.current as ItemListType[]);
       return;
     }
     if (!itemsOriginalList.current) return;
@@ -88,7 +94,7 @@ const App = () => {
         showCopiedMessageHandler={showCopiedMessageHandler}
         deleteEntryMessageHandler={deleteEntryMessageHandler}
         filterItems={filterItems}
-        resetToOriginal={() => setItems(itemsOriginalList.current as ItemList[])}
+        resetToOriginal={() => setItems(itemsOriginalList.current as ItemListType[])}
       />
     </>
   );

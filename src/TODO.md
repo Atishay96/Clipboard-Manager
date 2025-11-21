@@ -15,3 +15,4 @@
 - [x] Update Readme
 - [ ] Security issues
 - [ ] Bug when searched item is deleted (Fix: Introduce Ids for each history item)
+- [ ] Use app.hide instead of window.hide

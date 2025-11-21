@@ -1,7 +1,7 @@
 const { globalShortcut } = require('electron');
 const keys = require('./keys');
 
-const registerShortcuts = (window, fetchAndUpdateClipboard) => {
+const registerShortcuts = (window) => {
     registerToggleAppVisibilityShortcut(window);
     window.mainWindow.on('show', () => {
         registerEscapeShortcut(window);
