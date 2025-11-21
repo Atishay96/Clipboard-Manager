@@ -29,13 +29,12 @@ class Store {
   }
 
   /**
-   * Repear logic
-   * 1. Get last updated at date from config
-   * 2. If difference is more than 1 day, execute the job
-   * 3. Remove entries older than the last updated date from the store
-   * 4. Update file using fs
-   * 5. Update the last updated date
-   * 6. Schedule the job to run after 1 day
+   * Cleanup job logic
+   * 1. Get config with retention days setting
+   * 2. Remove entries older than the configured retention period
+   * 3. Update file using fs
+   * 4. Update the last updated date
+   * 5. Schedule the job to run after 1 day
    */
   _repearJob() {
     let configFileData;
@@ -50,26 +49,39 @@ class Store {
       config = JSON.parse(configFileData);
     }
 
+    // Always run cleanup on startup and then schedule next run
     this._removeOldEntries(config);
 
-    const lastUpdatedAt = new Date(config.lastUpdatedAt);
-    if ((new Date()).getTime() - lastUpdatedAt.getTime() <= ONE_DAY) {
-      setTimeout(() => {
-        this._repearJob();
-      }, ONE_DAY);
-    }
+    // Schedule next cleanup job to run after 1 day
+    setTimeout(() => {
+      this._repearJob();
+    }, ONE_DAY);
   }
 
   _removeOldEntries(config) {
+    // Get retention days from config, default to 30 days
+    const retentionDays = config.retentionDays || 30;
     const deleteEntriesBeforeDate = new Date();
-    deleteEntriesBeforeDate.setDate(deleteEntriesBeforeDate.getDate() - 30); // Delete entries older than 30 days
+    deleteEntriesBeforeDate.setDate(deleteEntriesBeforeDate.getDate() - retentionDays);
+    
     const currentStoreLength = this.store.length;
-
-    const store = this.store.filter((item) => new Date(item.date) > deleteEntriesBeforeDate);
+    
+    // Filter out items older than retention period
+    // Ensure date is properly parsed (handle both Date objects and date strings)
+    const store = this.store.filter((item) => {
+      const itemDate = new Date(item.date);
+      return itemDate > deleteEntriesBeforeDate;
+    });
 
     // If no changes, don't update anything
-    if (currentStoreLength === store.length) return;
+    if (currentStoreLength === store.length) {
+      // Still update lastUpdatedAt to track when cleanup last ran
+      config.lastUpdatedAt = new Date();
+      fs.writeFileSync(this.configPath, JSON.stringify(config), 'utf-8');
+      return;
+    }
 
+    console.log(`Cleaned up ${currentStoreLength - store.length} old entries (older than ${retentionDays} days)`);
     this.store = store;
     this._parseAndRewriteFile();
     config.lastUpdatedAt = new Date();
@@ -137,7 +149,47 @@ class Store {
   getDefaultConfig() {
     return {
       lastUpdatedAt: new Date(),
+      retentionDays: 30, // Default: delete items older than 30 days
     };
+  }
+
+  /**
+   * Set the retention period in days
+   * @param {number} days - Number of days to keep items (default: 30)
+   */
+  setRetentionDays(days) {
+    let configFileData;
+    try {
+      configFileData = fs.readFileSync(this.configPath, 'utf-8');
+    } catch (error) {}
+    let config;
+    if (!configFileData) {
+      config = this.getDefaultConfig();
+    } else {
+      config = JSON.parse(configFileData);
+    }
+    config.retentionDays = Math.max(1, Math.floor(days)); // Ensure at least 1 day
+    fs.writeFileSync(this.configPath, JSON.stringify(config), 'utf-8');
+    // Trigger immediate cleanup with new retention period
+    this._removeOldEntries(config);
+  }
+
+  /**
+   * Get the current retention period in days
+   * @returns {number} Number of days items are kept
+   */
+  getRetentionDays() {
+    let configFileData;
+    try {
+      configFileData = fs.readFileSync(this.configPath, 'utf-8');
+    } catch (error) {}
+    let config;
+    if (!configFileData) {
+      config = this.getDefaultConfig();
+    } else {
+      config = JSON.parse(configFileData);
+    }
+    return config.retentionDays || 30;
   }
 }
   
