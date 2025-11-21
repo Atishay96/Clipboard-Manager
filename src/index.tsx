@@ -79,8 +79,13 @@ const App = () => {
       const fetchData = async () => {
         try {
           const history = await window.api.requestHistory();
-          setItems(history);
-          itemsOriginalList.current = history;
+          // Create a deep copy to ensure each item has its own reference
+          const historyCopy = history.map(item => ({
+            date: new Date(item.date),
+            value: item.value
+          }));
+          setItems(historyCopy);
+          itemsOriginalList.current = historyCopy;
         } catch (error) {
           console.error('Error while fetching data', error);
         }
@@ -96,11 +101,33 @@ const App = () => {
       if (!itemsOriginalList.current) {
         itemsOriginalList.current = [];
       }
-      itemsOriginalList.current.unshift(data);
+      // Create a copy of the new item to avoid reference issues
+      const newItem = {
+        date: new Date(data.date),
+        value: data.value
+      };
+      itemsOriginalList.current.unshift(newItem);
+      // Update displayed items based on current search state
       setItems([...itemsOriginalList.current]);
     };
 
+    // Handler for when the full history is updated (e.g., after moving an item)
+    // This ensures the UI is always in sync with the store
+    const updatedHistoryHandler = (history: ItemListType[]) => {
+      // Use JSON serialization to ensure complete isolation and no shared references
+      const historyString = JSON.stringify(history);
+      const historyCopy = JSON.parse(historyString).map((item: any) => ({
+        date: new Date(item.date),
+        value: String(item.value) // Ensure value is a string
+      }));
+      itemsOriginalList.current = historyCopy;
+      // Always update displayed items to match the store
+      // If user is searching, they'll need to search again, but at least data is consistent
+      setItems([...historyCopy]); // Use spread to create new array reference
+    };
+
     window.api.entryAdded(entryAddedListenerHandler);
+    window.api.updatedHistory(updatedHistoryHandler);
     
     // Notify main process that React is ready to receive messages
     window.api.notifyReady();
@@ -108,7 +135,19 @@ const App = () => {
 
   useEffect(() => {
     const entryRemovedListenerHandler = (index: number) => {
-      removeItem(index);
+      // Update both the displayed items and the original list
+      setItems((prevItems) => {
+        const newItems = [...prevItems];
+        if (index >= 0 && index < newItems.length) {
+          newItems.splice(index, 1);
+        }
+        return newItems;
+      });
+      
+      // Also update the original list reference
+      if (itemsOriginalList.current && index >= 0 && index < itemsOriginalList.current.length) {
+        itemsOriginalList.current.splice(index, 1);
+      }
     }
     window.api.entryRemoved(entryRemovedListenerHandler);
   }, []);

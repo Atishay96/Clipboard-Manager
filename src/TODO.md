@@ -6,8 +6,8 @@
 - [x] Add repear method to remove old data (today)
 - [x] Remove .json
 - [x] text Overflow
-- [ ] Animation
-- [ ] UI
+- [x] Animation
+- [x] UI
 - [x] Bug when first item is deleted
 - [ ] Performance testing
 - [x] Race conditions
@@ -16,3 +16,4 @@
 - [ ] Security issues
 - [ ] Bug when searched item is deleted (Fix: Introduce Ids for each history item)
 - [ ] Use app.hide instead of window.hide
+- [ ] Hotkeys not working properly

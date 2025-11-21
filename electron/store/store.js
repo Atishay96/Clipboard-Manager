@@ -97,7 +97,12 @@ class Store {
   }
 
   getList() {
-    return this.store;
+    // Return a deep copy using JSON serialization to ensure complete isolation
+    // This prevents any reference sharing issues
+    return JSON.parse(JSON.stringify(this.store)).map(item => ({
+      date: new Date(item.date),
+      value: String(item.value) // Ensure value is a string
+    }));
   }
 
   insert(value) {
