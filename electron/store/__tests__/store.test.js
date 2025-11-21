@@ -51,11 +51,19 @@ describe('Store', () => {
   });
 
   describe('insert', () => {
-    test('should insert a new item', () => {
+    test('should insert a new item with unique ID', () => {
       const item = store.insert('test value');
       expect(item).toBeDefined();
+      expect(item.id).toBeDefined();
+      expect(typeof item.id).toBe('string');
       expect(item.value).toBe('test value');
       expect(item.date).toBeInstanceOf(Date);
+    });
+
+    test('should generate unique IDs for different items', () => {
+      const item1 = store.insert('test value 1');
+      const item2 = store.insert('test value 2');
+      expect(item1.id).not.toBe(item2.id);
     });
 
     test('should not insert empty values', () => {
@@ -93,13 +101,87 @@ describe('Store', () => {
       expect(list1[0]).not.toBe(list2[0]);
     });
 
-    test('should return items with proper structure', () => {
+    test('should return items with proper structure including ID', () => {
       store.insert('test');
       const list = store.getList();
+      expect(list[0]).toHaveProperty('id');
       expect(list[0]).toHaveProperty('date');
       expect(list[0]).toHaveProperty('value');
       expect(list[0].value).toBe('test');
       expect(list[0].date).toBeInstanceOf(Date);
+      expect(typeof list[0].id).toBe('string');
+    });
+
+    test('should ensure IDs exist for backward compatibility', () => {
+      // Simulate old data without IDs
+      store.store = [
+        { date: new Date(), value: 'old item 1' },
+        { date: new Date(), value: 'old item 2' },
+      ];
+      const list = store.getList();
+      expect(list[0].id).toBeDefined();
+      expect(list[1].id).toBeDefined();
+      expect(typeof list[0].id).toBe('string');
+      expect(typeof list[1].id).toBe('string');
+    });
+  });
+
+  describe('findById', () => {
+    test('should find item by ID', () => {
+      const item = store.insert('test item');
+      const found = store.findById(item.id);
+      expect(found).toBeDefined();
+      expect(found.value).toBe('test item');
+      expect(found.id).toBe(item.id);
+    });
+
+    test('should return undefined for non-existent ID', () => {
+      const found = store.findById('non-existent-id');
+      expect(found).toBeUndefined();
+    });
+  });
+
+  describe('findIndexById', () => {
+    test('should find index by ID', () => {
+      store.insert('first');
+      const item = store.insert('second');
+      store.insert('third');
+      const index = store.findIndexById(item.id);
+      expect(index).toBe(1); // Second item (newest first)
+    });
+
+    test('should return -1 for non-existent ID', () => {
+      const index = store.findIndexById('non-existent-id');
+      expect(index).toBe(-1);
+    });
+  });
+
+  describe('removeById', () => {
+    test('should remove item by ID', () => {
+      store.insert('first');
+      const item = store.insert('second');
+      store.insert('third');
+      
+      const initialLength = store.getList().length;
+      const removed = store.removeById(item.id, 'current');
+      
+      expect(removed).toBe(true);
+      const list = store.getList();
+      expect(list.length).toBe(initialLength - 1);
+      expect(list.find(i => i.id === item.id)).toBeUndefined();
+    });
+
+    test('should return false for non-existent ID', () => {
+      const removed = store.removeById('non-existent-id', 'current');
+      expect(removed).toBe(false);
+    });
+
+    test('should update lastCopiedItem when removing first item', () => {
+      store.insert('first');
+      const secondItem = store.insert('second'); // This becomes index 0 (newest first)
+      
+      store.removeById(secondItem.id, 'new current');
+      expect(store.getLatestItem()).toBe('new current');
     });
   });
 

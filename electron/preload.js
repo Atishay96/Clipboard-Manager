@@ -16,11 +16,11 @@ contextBridge.exposeInMainWorld('api', {
     updatedHistory: (callback) => {
         ipcRenderer.on('updatedHistory', (e, data) => callback(data));
     },
-    deleteEntry: (index) => {
-        ipcRenderer.send('deleteEntry', index);
+    deleteEntry: (id) => {
+        ipcRenderer.send('deleteEntry', id);
     },
-    copyToClipboard: (historyItem, index) => {
-        ipcRenderer.send('copyToClipboard', historyItem, index);
+    copyToClipboard: (historyItem, id) => {
+        ipcRenderer.send('copyToClipboard', historyItem, id);
     },
     showCopiedText: (callback) => {
         ipcRenderer.on('showCopiedText', () => callback());

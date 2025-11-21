@@ -8,6 +8,7 @@ const os = require("os");
  *  ItemList[]
  *
  *  ItemList: {
+ *    id: String (unique identifier),
  *    date: Date,
  *    value: String
  *  }
@@ -100,14 +101,21 @@ class Store {
     // Return a deep copy using JSON serialization to ensure complete isolation
     // This prevents any reference sharing issues
     return JSON.parse(JSON.stringify(this.store)).map(item => ({
+      id: item.id || this._generateId(), // Ensure ID exists for backward compatibility
       date: new Date(item.date),
       value: String(item.value) // Ensure value is a string
     }));
   }
 
+  _generateId() {
+    // Generate a unique ID using timestamp and random number
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
   insert(value) {
     if (value === '' || value === undefined || value === null) return;
     const item = {
+      id: this._generateId(),
       date: new Date(),
       value,
     };
@@ -136,12 +144,44 @@ class Store {
     this._parseAndRewriteFile();
   }
 
+  removeById(id, currentClipboardText) {
+    const index = this.store.findIndex(item => item.id === id);
+    if (index === -1) return false;
+    if (index === 0) {
+      this.lastCopiedItem = currentClipboardText;
+    }
+    this.store.splice(index, 1);
+    this._parseAndRewriteFile();
+    return true;
+  }
+
+  findById(id) {
+    return this.store.find(item => item.id === id);
+  }
+
+  findIndexById(id) {
+    return this.store.findIndex(item => item.id === id);
+  }
+
   parseStore() {
     try {
       const store = [];
-      fs.readFileSync(this.path, 'utf-8')?.split?.(/\r?\n/)?.map?.(line => {
-        if (line.length) {
-          store.push(JSON.parse(line));
+      const fileContent = fs.readFileSync(this.path, 'utf-8');
+      if (!fileContent) return [];
+      
+      fileContent.split(/\r?\n/).forEach(line => {
+        if (line.trim().length) {
+          try {
+            const item = JSON.parse(line);
+            // Ensure backward compatibility: add ID if missing
+            if (!item.id) {
+              item.id = this._generateId();
+            }
+            store.push(item);
+          } catch (parseError) {
+            console.error('Error parsing line in store:', line, parseError);
+            // Skip malformed lines instead of crashing
+          }
         }
       });
       return store.reverse();

@@ -10,18 +10,11 @@ const requestHistoryListenerHandler = (store, window) => {
 };
 
 const copyToClipboardListenerHandler = (store, window) => {
-    return async (event, data, index) => {
-        // Validate index
-        if (index < 0 || index >= store.store.length) {
-            console.error(`Invalid index ${index} for store length ${store.store.length}`);
-            return;
-        }
-        
-        // Get the item directly from the store to avoid any data corruption issues
-        // Don't trust the data sent from UI - use the store as source of truth
-        const storeItem = store.store[index];
+    return async (event, data, id) => {
+        // Find item by ID instead of index
+        const storeItem = store.findById(id);
         if (!storeItem) {
-            console.error(`No item found at index ${index}`);
+            console.error(`No item found with id ${id}`);
             return;
         }
         
@@ -38,13 +31,12 @@ const copyToClipboardListenerHandler = (store, window) => {
         
         // Ensure it's a non-empty string
         if (!valueToCopy || valueToCopy.trim() === '') {
-            console.error(`Empty value at index ${index}`);
+            console.error(`Empty value for item with id ${id}`);
             return;
         }
         
         // Update lastCopiedItem BEFORE writing to clipboard to prevent
         // clipboard monitoring from re-adding it as a new entry
-        // Use a small delay to ensure the flag is set before clipboard write
         store.lastCopiedItem = valueToCopy;
         
         // Write to clipboard FIRST before any store modifications
@@ -64,16 +56,20 @@ const copyToClipboardListenerHandler = (store, window) => {
             return;
         }
         
-        if (index === 0) {
+        // Find the current index of the item
+        const currentIndex = store.findIndexById(id);
+        
+        if (currentIndex === 0) {
             // Item is already at the top, just update its date to now
             storeItem.date = new Date();
             store._parseAndRewriteFile();
         } else {
             // Move item to the top: remove from current position
-            store.store.splice(index, 1);
+            store.store.splice(currentIndex, 1);
             
             // Create a completely new item object to avoid any reference issues
             const movedItem = {
+                id: storeItem.id, // Preserve the ID
                 date: new Date(),
                 value: valueToCopy, // Use the already-extracted string value
             };
@@ -93,13 +89,13 @@ const copyToClipboardListenerHandler = (store, window) => {
 };
 
 const deleteEntryHandler = (store, window) => {
-    return async (event, index) => {
-        // Validate index
-        if (index < 0 || index >= store.store.length) {
-            console.error(`Invalid index ${index} for store length ${store.store.length}`);
+    return async (event, id) => {
+        // Remove by ID instead of index
+        const removed = store.removeById(id, clipboard.readText());
+        if (!removed) {
+            console.error(`No item found with id ${id}`);
             return;
         }
-        store.remove(index, clipboard.readText());
         // Send updated full list to ensure UI is in sync
         const updatedHistory = store.getList();
         // Serialize and deserialize to ensure clean data with no shared references

@@ -66,8 +66,9 @@ const init = async () => {
   await initListeners(store, window);
   registerShortcuts(window);
   
-  // Listen for React ready signal (use 'on' instead of 'once' to handle window recreation)
-  ipcMain.on('reactReady', () => {
+  // Listen for React ready signal (use 'once' to prevent multiple starts)
+  // If window is recreated, init() will be called again
+  ipcMain.once('reactReady', () => {
     startClipboardMonitoringWhenReady();
   });
   
@@ -82,5 +83,18 @@ const init = async () => {
 app.whenReady().then(init);
 
 app.on('window-all-closed', () => {
+  // Clean up clipboard monitoring interval
+  if (clipboardInterval) {
+    clearInterval(clipboardInterval);
+    clipboardInterval = null;
+  }
   if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('before-quit', () => {
+  // Clean up clipboard monitoring interval before quitting
+  if (clipboardInterval) {
+    clearInterval(clipboardInterval);
+    clipboardInterval = null;
+  }
 });

@@ -74,12 +74,14 @@ describe('Copy Flow Integration', () => {
     }
   });
 
-  test('should copy item at index 0 without moving it', () => {
+  test('should copy item by ID without moving it when at top', () => {
     const handler = copyToClipboardListenerHandler(store, mockWindow);
+    const list = store.getList();
     // Items are stored newest first, so index 0 is "Item 3"
-    const data = { value: 'Item 3' };
+    const topItem = list[0];
+    const data = { id: topItem.id, value: topItem.value };
 
-    handler({}, data, 0);
+    handler({}, data, topItem.id);
 
     expect(clipboard.writeText).toHaveBeenCalledWith('Item 3');
     expect(store.lastCopiedItem).toBe('Item 3');
@@ -87,18 +89,22 @@ describe('Copy Flow Integration', () => {
     expect(store.getList()[0].value).toBe('Item 3'); // Should still be at top
   });
 
-  test('should move item from middle to top when copying', () => {
+  test('should move item from middle to top when copying by ID', () => {
     const handler = copyToClipboardListenerHandler(store, mockWindow);
-    const data = { value: 'Item 2' };
+    const list = store.getList();
+    // Items are stored newest first: [Item 3, Item 2, Item 1]
+    // So index 1 is "Item 2"
+    const middleItem = list[1];
+    const data = { id: middleItem.id, value: middleItem.value };
 
-    handler({}, data, 1);
+    handler({}, data, middleItem.id);
 
     expect(clipboard.writeText).toHaveBeenCalledWith('Item 2');
     expect(store.lastCopiedItem).toBe('Item 2');
     
-    const list = store.getList();
-    expect(list[0].value).toBe('Item 2'); // Should be moved to top
-    expect(list.length).toBe(3);
+    const newList = store.getList();
+    expect(newList[0].value).toBe('Item 2'); // Should be moved to top
+    expect(newList.length).toBe(3);
     expect(mockWindow.mainWindow.webContents.send).toHaveBeenCalledWith(
       'updatedHistory',
       expect.any(Array)
@@ -107,11 +113,13 @@ describe('Copy Flow Integration', () => {
 
   test('should prevent clipboard monitoring from re-adding copied item', () => {
     const handler = copyToClipboardListenerHandler(store, mockWindow);
+    const list = store.getList();
     // Items are stored newest first: [Item 3, Item 2, Item 1]
     // So index 1 is "Item 2"
-    const data = { value: 'Item 2' };
+    const middleItem = list[1];
+    const data = { id: middleItem.id, value: middleItem.value };
 
-    handler({}, data, 1);
+    handler({}, data, middleItem.id);
 
     // Simulate clipboard monitoring check
     expect(store.getLatestItem()).toBe('Item 2');
@@ -120,22 +128,27 @@ describe('Copy Flow Integration', () => {
     // The monitoring should not add it because lastCopiedItem matches clipboard content
   });
 
-  test('should handle copying last item in list', () => {
+  test('should handle copying last item in list by ID', () => {
     const handler = copyToClipboardListenerHandler(store, mockWindow);
-    const data = { value: 'Item 1' };
+    const list = store.getList();
+    // Last item (index 2) is "Item 1"
+    const lastItem = list[2];
+    const data = { id: lastItem.id, value: lastItem.value };
 
-    handler({}, data, 2); // Last item (index 2)
+    handler({}, data, lastItem.id);
 
     expect(clipboard.writeText).toHaveBeenCalledWith('Item 1');
-    const list = store.getList();
-    expect(list[0].value).toBe('Item 1'); // Should be moved to top
+    const newList = store.getList();
+    expect(newList[0].value).toBe('Item 1'); // Should be moved to top
   });
 
-  test('should maintain data integrity when moving items', () => {
+  test('should maintain data integrity when moving items by ID', () => {
     const handler = copyToClipboardListenerHandler(store, mockWindow);
     const originalList = store.getList().map(item => item.value);
+    const list = store.getList();
+    const middleItem = list[1];
 
-    handler({}, { value: 'Item 2' }, 1);
+    handler({}, { id: middleItem.id, value: middleItem.value }, middleItem.id);
 
     const newList = store.getList().map(item => item.value);
     // All items should still exist, just reordered
@@ -149,12 +162,31 @@ describe('Copy Flow Integration', () => {
   test('should verify clipboard write was successful', () => {
     clipboard.readText.mockReturnValue('Item 2');
     const handler = copyToClipboardListenerHandler(store, mockWindow);
-    const data = { value: 'Item 2' };
+    const list = store.getList();
+    const middleItem = list[1];
+    const data = { id: middleItem.id, value: middleItem.value };
 
-    handler({}, data, 1);
+    handler({}, data, middleItem.id);
 
     expect(clipboard.writeText).toHaveBeenCalled();
     expect(clipboard.readText).toHaveBeenCalled(); // Verification call
+  });
+
+  test('should work correctly with filtered/search results (ID-based)', () => {
+    const handler = copyToClipboardListenerHandler(store, mockWindow);
+    const list = store.getList();
+    // Simulate filtered list where user sees only "Item 2"
+    const filteredItem = list.find(item => item.value === 'Item 2');
+    const data = { id: filteredItem.id, value: filteredItem.value };
+
+    // Even though this might be at a different index in filtered view,
+    // ID-based lookup ensures correct item is copied
+    handler({}, data, filteredItem.id);
+
+    expect(clipboard.writeText).toHaveBeenCalledWith('Item 2');
+    expect(store.lastCopiedItem).toBe('Item 2');
+    const newList = store.getList();
+    expect(newList[0].value).toBe('Item 2'); // Should be moved to top
   });
 });
 

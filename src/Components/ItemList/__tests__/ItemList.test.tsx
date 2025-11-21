@@ -45,9 +45,9 @@ beforeAll(() => {
 
 describe('ItemList', () => {
   const mockItems: ItemListType[] = [
-    { date: new Date('2024-01-01'), value: 'First item' },
-    { date: new Date('2024-01-02'), value: 'Second item' },
-    { date: new Date('2024-01-03'), value: 'Third item' },
+    { id: '1', date: new Date('2024-01-01'), value: 'First item' },
+    { id: '2', date: new Date('2024-01-02'), value: 'Second item' },
+    { id: '3', date: new Date('2024-01-03'), value: 'Third item' },
   ];
 
   const defaultProps = {

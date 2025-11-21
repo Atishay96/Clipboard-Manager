@@ -47,11 +47,17 @@ class Window {
         });
 
         window.on('close', (event) => {
-            if (this.mainWindow.isDestroyed()) {
-                this.createWindow(false);
-                event.preventDefault();
-                return;
+            try {
+                if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+                    // Window is still valid, allow normal close
+                    return;
+                }
+            } catch (error) {
+                // Window might already be destroyed, recreate it
             }
+            // Window is destroyed or invalid, recreate it
+            this.createWindow(false);
+            event.preventDefault();
         });
     
         this.mainWindow = window;

@@ -1,4 +1,5 @@
 interface ItemList {
+    id: string;
     date: Date;
     value: string;
 }
@@ -6,8 +7,8 @@ interface ItemList {
 interface Window {
     api: {
         async requestHistory(): ItemList[];
-        async copyToClipboard(historyItem: ItemList, index: number): void;
-        deleteEntry(index: number): void;
+        async copyToClipboard(historyItem: ItemList, id: string): void;
+        deleteEntry(id: string): void;
         entryAdded(callback: Function): void;
         entryRemoved(callback: Function): void;
         updatedHistory(callback: Function): void;

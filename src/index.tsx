@@ -81,6 +81,7 @@ const App = () => {
           const history = await window.api.requestHistory();
           // Create a deep copy to ensure each item has its own reference
           const historyCopy = history.map(item => ({
+            id: item.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Ensure ID exists
             date: new Date(item.date),
             value: item.value
           }));
@@ -103,6 +104,7 @@ const App = () => {
       }
       // Create a copy of the new item to avoid reference issues
       const newItem = {
+        id: data.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Ensure ID exists
         date: new Date(data.date),
         value: data.value
       };
@@ -117,6 +119,7 @@ const App = () => {
       // Use JSON serialization to ensure complete isolation and no shared references
       const historyString = JSON.stringify(history);
       const historyCopy = JSON.parse(historyString).map((item: any) => ({
+        id: item.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Ensure ID exists
         date: new Date(item.date),
         value: String(item.value) // Ensure value is a string
       }));
@@ -133,24 +136,17 @@ const App = () => {
     window.api.notifyReady();
   }, []);
 
-  useEffect(() => {
-    const entryRemovedListenerHandler = (index: number) => {
-      // Update both the displayed items and the original list
-      setItems((prevItems) => {
-        const newItems = [...prevItems];
-        if (index >= 0 && index < newItems.length) {
-          newItems.splice(index, 1);
-        }
-        return newItems;
-      });
-      
-      // Also update the original list reference
-      if (itemsOriginalList.current && index >= 0 && index < itemsOriginalList.current.length) {
-        itemsOriginalList.current.splice(index, 1);
-      }
-    }
-    window.api.entryRemoved(entryRemovedListenerHandler);
-  }, []);
+  // Note: entryRemoved listener is not used - we use updatedHistory instead
+  // Keeping this commented out in case we want to use it for performance optimization later
+  // useEffect(() => {
+  //   const entryRemovedListenerHandler = (id: string) => {
+  //     setItems((prevItems) => prevItems.filter(item => item.id !== id));
+  //     if (itemsOriginalList.current) {
+  //       itemsOriginalList.current = itemsOriginalList.current.filter(item => item.id !== id);
+  //     }
+  //   }
+  //   window.api.entryRemoved(entryRemovedListenerHandler);
+  // }, []);
 
   const showCopiedMessageHandler = () => {
     setShowCopiedMessage(true);

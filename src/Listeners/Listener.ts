@@ -12,9 +12,10 @@ const copyKeys: { [key: string]: boolean } = {
 
 const useListenerHook = (copyToClipboardCallback: (index: number) => void) => {
     const keyDownHandler = (e: KeyboardEvent) => {
-        let { key, metaKey, shiftKey } = e;
+        let { key, metaKey, ctrlKey } = e;
 
-        if (metaKey && copyKeys[key]) {
+        // Support both Cmd (Mac) and Ctrl (Windows/Linux)
+        if ((metaKey || ctrlKey) && copyKeys[key]) {
             copyToClipboardCallback(parseInt(key) - 1);
         }
     };

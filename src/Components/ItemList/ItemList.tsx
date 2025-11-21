@@ -37,11 +37,11 @@ const ItemList = (props: OwnProps) => {
 
     useListenerHook((index: number) => {
         if (index >= props.items.length) return;
-        copyToClipboard(props.items[index], index);
+        copyToClipboard(props.items[index]);
     });
 
-    const copyToClipboard = (item: ItemList, i: number) => {
-        window.api.copyToClipboard(item, i);
+    const copyToClipboard = (item: ItemList) => {
+        window.api.copyToClipboard(item, item.id);
         props.showCopiedMessageHandler();
     };
 
@@ -53,12 +53,12 @@ const ItemList = (props: OwnProps) => {
         }
     }
 
-    const handleDelete = (e: React.MouseEvent, index: number) => {
+    const handleDelete = (e: React.MouseEvent, item: ItemList, index: number) => {
         e.stopPropagation();
         setRemovingIndex(index);
         // Wait for collapse animation to complete before removing from DOM
         setTimeout(() => {
-            window.api.deleteEntry(index);
+            window.api.deleteEntry(item.id);
             props.deleteEntryMessageHandler();
             setRemovingIndex(null);
         }, 400); // Match Collapse animation duration
@@ -210,7 +210,7 @@ const ItemList = (props: OwnProps) => {
                                         }} 
                                         onClick={(e) => {
                                             if (!isRemoving) {
-                                                copyToClipboard(item, i);
+                                                copyToClipboard(item);
                                             }
                                         }}
                                         onMouseEnter={() => !isRemoving && setHoveredIndex(i)}
@@ -252,7 +252,7 @@ const ItemList = (props: OwnProps) => {
                                                 }}
                                             >
                                                 <IconButton
-                                                    onClick={(e) => handleDelete(e, i)}
+                                                    onClick={(e) => handleDelete(e, item, i)}
                                                     aria-label="Delete entry"
                                                     size="small"
                                                     disabled={isRemoving}

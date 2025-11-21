@@ -62,7 +62,7 @@ describe('useListenerHook', () => {
     }
   });
 
-  test('should not call callback for non-meta key presses', () => {
+  test('should not call callback for non-meta/ctrl key presses', () => {
     cleanup = useListenerHook(mockCallback);
     
     const handler = (document.addEventListener as jest.Mock).mock.calls.find(
@@ -73,10 +73,49 @@ describe('useListenerHook', () => {
       const event = new KeyboardEvent('keydown', {
         key: '1',
         metaKey: false,
+        ctrlKey: false,
       } as any);
       handler(event);
       
       expect(mockCallback).not.toHaveBeenCalled();
+    }
+  });
+
+  test('should call callback with correct index for Ctrl+1 (Windows/Linux)', () => {
+    cleanup = useListenerHook(mockCallback);
+    
+    const handler = (document.addEventListener as jest.Mock).mock.calls.find(
+      call => call[0] === 'keydown'
+    )?.[1];
+    
+    if (handler) {
+      const event = new KeyboardEvent('keydown', {
+        key: '1',
+        metaKey: false,
+        ctrlKey: true,
+      } as any);
+      handler(event);
+      
+      expect(mockCallback).toHaveBeenCalledWith(0); // Ctrl+1 -> index 0
+    }
+  });
+
+  test('should call callback with correct index for Ctrl+9 (Windows/Linux)', () => {
+    cleanup = useListenerHook(mockCallback);
+    
+    const handler = (document.addEventListener as jest.Mock).mock.calls.find(
+      call => call[0] === 'keydown'
+    )?.[1];
+    
+    if (handler) {
+      const event = new KeyboardEvent('keydown', {
+        key: '9',
+        metaKey: false,
+        ctrlKey: true,
+      } as any);
+      handler(event);
+      
+      expect(mockCallback).toHaveBeenCalledWith(8); // Ctrl+9 -> index 8
     }
   });
 
