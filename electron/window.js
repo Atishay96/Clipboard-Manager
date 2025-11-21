@@ -15,6 +15,7 @@ class Window {
             y: height,
             resizable: false,
             movable: false,
+            minimizable: false,
             alwaysOnTop: true,
             skipTaskbar: true,
             autoHideMenuBar: true,
