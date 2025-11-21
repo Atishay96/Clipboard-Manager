@@ -22,9 +22,18 @@
     "@types/electron": "1.6.10",
     "@types/webpack": "5.28.5",
     "@types/webpack-dev-server": "4.7.2",
+    "@types/jest": "^29.5.12",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/user-event": "^14.5.1",
+    "babel-jest": "^29.7.0",
+    "identity-obj-proxy": "^3.0.0",
     "electron": "29.1.5",
     "electron-react-devtools": "0.5.3",
     "html-webpack-plugin": "5.6.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.1.2",
     "ts-loader": "9.5.1",
     "webpack": "5.91.0",
     "webpack-cli": "5.1.4",
@@ -39,6 +48,9 @@
     "build:all": "yarn build && yarn package-mac",
     "package-mac": "yarn build; electron-packager . --overwrite --dir --mac --universal --platform=darwin --icon=./assets/clipboard.icns --prune=true --out=release-builds",
     "package-win": "yarn build; electron-packager . clipboard --overwrite --asar=true --platform=win32 --arch=ia32 --icon=./assets/clipboard.ico --prune=true --out=release-builds --version-string.CompanyName=CM --version-string.FileDescription=CM --version-string.ProductName=\"clipboard\"",
-    "package-linux": "yarn build; electron-packager . clipboard --overwrite --platform=linux --arch=x64 --icon=./assets/clipboard.png --out=release-builds"
+    "package-linux": "yarn build; electron-packager . clipboard --overwrite --platform=linux --arch=x64 --icon=./assets/clipboard.png --out=release-builds",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   }
 }
