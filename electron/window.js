@@ -1,4 +1,4 @@
-const { BrowserWindow, screen } = require('electron');
+const { BrowserWindow, screen, app } = require('electron');
 const path = require('path');
 
 class Window {
@@ -30,12 +30,20 @@ class Window {
         });
         // window.webContents.openDevTools();
         if (hideWindow) {
-            window.hide();
+            if (process.platform === 'darwin') {
+                app.hide();
+            } else {
+                window.hide();
+            }
         }
     
         window.loadFile(path.join(__dirname, '../dist/index.html'));
         window.on('blur', () => {
-            window.hide()
+            if (process.platform === 'darwin') {
+                app.hide();
+            } else {
+                window.hide();
+            }
         });
     
         window.on('show', () => {
@@ -64,11 +72,19 @@ class Window {
     };
     
     showWindow() {
-        this.mainWindow.show();
+        if (process.platform === 'darwin') {
+            app.show();
+        } else {
+            this.mainWindow.show();
+        }
     };
     
     hideWindow() {
-        this.mainWindow.hide();
+        if (process.platform === 'darwin') {
+            app.hide();
+        } else {
+            this.mainWindow.hide();
+        }
     };
     
     toggleWindow() {

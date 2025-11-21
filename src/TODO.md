@@ -14,6 +14,6 @@
 - [x] Visual alert saying text copied
 - [x] Update Readme
 - [ ] Security issues
-- [ ] Bug when searched item is deleted (Fix: Introduce Ids for each history item)
-- [ ] Use app.hide instead of window.hide
-- [ ] Hotkeys not working properly
+- [x] Bug when searched item is deleted (Fix: Introduce Ids for each history item)
+- [x] Use app.hide instead of window.hide
+- [x] Hotkeys not working properly

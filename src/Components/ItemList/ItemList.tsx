@@ -101,14 +101,24 @@ const ItemList = (props: OwnProps) => {
         }
     }
 
+    // Debounce delete operations to prevent rapid-fire deletes
+    const deleteTimeoutRef = React.useRef<{ [key: string]: NodeJS.Timeout }>({});
+    
     const handleDelete = (e: React.MouseEvent, item: ItemList, index: number) => {
         e.stopPropagation();
+        
+        // Clear any pending delete for this item
+        if (deleteTimeoutRef.current[item.id]) {
+            clearTimeout(deleteTimeoutRef.current[item.id]);
+        }
+        
         setRemovingIndex(index);
         // Wait for collapse animation to complete before removing from DOM
-        setTimeout(() => {
+        deleteTimeoutRef.current[item.id] = setTimeout(() => {
             window.api.deleteEntry(item.id);
             props.deleteEntryMessageHandler();
             setRemovingIndex(null);
+            delete deleteTimeoutRef.current[item.id];
         }, 400); // Match Collapse animation duration
     };
 

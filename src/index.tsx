@@ -129,6 +129,7 @@ const App = () => {
       }
       
       // Throttle UI updates - batch rapid updates together
+      // Increased throttle time to prevent flickering from rapid deletes
       updateTimeout = setTimeout(() => {
         if (pendingHistory) {
           // Use JSON serialization to ensure complete isolation and no shared references
@@ -145,7 +146,7 @@ const App = () => {
           pendingHistory = null;
         }
         updateTimeout = null;
-      }, 50); // 50ms throttle - batches rapid updates
+      }, 100); // 100ms throttle - batches rapid updates (increased from 50ms to prevent delete flickering)
     };
 
     window.api.entryAdded(entryAddedListenerHandler);

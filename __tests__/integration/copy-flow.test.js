@@ -4,7 +4,7 @@
  */
 
 const Store = require('../../electron/store/store');
-const { copyToClipboardListenerHandler } = require('../../electron/ipcMessaging/listeners');
+const { copyToClipboardListenerHandler, deleteEntryHandler } = require('../../electron/ipcMessaging/listeners');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -262,6 +262,40 @@ describe('Copy Flow Integration', () => {
     const insertResult2 = store.insert('Should be inserted');
     expect(insertResult2).not.toBeNull();
     expect(insertResult2.value).toBe('Should be inserted');
+  });
+
+  test('should handle rapid delete operations without flickering', async () => {
+    const handler = deleteEntryHandler(store, mockWindow);
+    
+    // Add more items for testing
+    store.insert('Item 4');
+    store.insert('Item 5');
+    store.insert('Item 6');
+    
+    const list = store.getList();
+    expect(list.length).toBe(6); // 3 original + 3 new
+    
+    // Delete multiple items rapidly
+    const item1 = list[0];
+    const item2 = list[1];
+    const item3 = list[2];
+    
+    const promises = [
+      handler({}, item1.id),
+      handler({}, item2.id),
+      handler({}, item3.id),
+    ];
+    
+    await Promise.all(promises);
+    
+    // All deletions should complete
+    const finalList = store.getList();
+    expect(finalList.length).toBe(3); // Should have 3 items remaining
+    // Verify all deleted items are gone
+    const remainingIds = finalList.map(i => i.id);
+    expect(remainingIds).not.toContain(item1.id);
+    expect(remainingIds).not.toContain(item2.id);
+    expect(remainingIds).not.toContain(item3.id);
   });
 });
 
