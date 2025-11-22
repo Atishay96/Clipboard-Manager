@@ -81,6 +81,32 @@ const ItemList = (props: OwnProps) => {
         }
     }, [isButtonExpanded]);
 
+    // Handle Command+F (Mac) or Ctrl+F (Windows/Linux) to focus search
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            let { key, metaKey, ctrlKey } = e;
+            
+            // Support both Cmd (Mac) and Ctrl (Windows/Linux)
+            if ((metaKey || ctrlKey) && key === 'f') {
+                e.preventDefault();
+                // Expand search if not already expanded
+                if (!isButtonExpanded) {
+                    setIsButtonExpanded(true);
+                } else {
+                    // If already expanded, just focus the input
+                    setTimeout(() => {
+                        searchInputRef.current?.focus();
+                    }, 0);
+                }
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isButtonExpanded]);
+
     const copyToClipboard = (item: ItemList) => {
         window.api.copyToClipboard(item, item.id);
         props.showCopiedMessageHandler();

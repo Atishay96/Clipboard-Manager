@@ -127,6 +127,13 @@ const copyToClipboardListenerHandler = (store, window) => {
                 const cleanHistory = JSON.parse(JSON.stringify(updatedHistory));
                 window.mainWindow.webContents.send('updatedHistory', cleanHistory);
             }
+
+            // Hide the window after 1 second to show the copied text briefly
+            setTimeout(() => {
+                if (window && window.hideWindow) {
+                    window.hideWindow();
+                }
+            }, 1000);
         } finally {
             // Always remove from in-flight operations
             inFlightOperations.delete(id);
